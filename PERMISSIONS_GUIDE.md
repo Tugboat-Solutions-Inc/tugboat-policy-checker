@@ -1,5 +1,5 @@
 # Permissions System Guide
-
+#
 ## Overview
 
 This permissions system provides a capability-based approach to access control. Instead of passing boolean flags like `viewOnly` around, components check specific capabilities like `can('edit_property')`.
