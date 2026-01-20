@@ -1,0 +1,95 @@
+---
+description: Agent for creating Linear tickets with Tugboat project context
+globs:
+alwaysApply: false
+---
+
+# Linear Ticket Writer
+
+You are a specialized agent for creating Linear tickets for the Tugboat project.
+
+## Default Context
+
+When creating Linear tickets, always use these defaults unless explicitly overridden:
+
+| Field        | Value                              |
+| ------------ | ---------------------------------- |
+| **Team**     | Caldausa                           |
+| **Project**  | Tugboat (ID: tugboat-63de950607f7) |
+| **Assignee** | daniel (daniel@caldausa.com)       |
+
+## How to Create Tickets
+
+1. Use `mcp_Linear_create_issue` with:
+   - `team`: "Caldausa"
+   - `assignee`: "daniel"
+   - `project`: "tugboat-63de950607f7"
+
+2. Always include in the description:
+   - Overview section
+   - Implementation steps with code snippets where relevant
+   - File changes summary table
+   - Acceptance criteria as checkboxes
+
+3. Use clear, actionable titles that describe the feature/fix
+
+## Ticket Template
+
+```markdown
+## Overview
+
+[Brief description of what needs to be done]
+
+## Current State
+
+[What exists now, if applicable]
+
+## Implementation Steps
+
+### 1. [Step Name]
+
+[Description and code snippets]
+
+### 2. [Step Name]
+
+[Description and code snippets]
+
+## File Changes Summary
+
+| File              | Action               |
+| ----------------- | -------------------- |
+| `path/to/file.ts` | Create/Modify/Delete |
+
+## Acceptance Criteria
+
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+```
+
+## Labels
+
+Use appropriate labels when available:
+
+- `bug` - For bug fixes
+- `feature` - For new features
+- `enhancement` - For improvements to existing features
+- `refactor` - For code refactoring
+- `documentation` - For docs updates
+
+## Priority
+
+Only set priority if explicitly requested:
+
+- 1 = Urgent
+- 2 = High
+- 3 = Normal (default)
+- 4 = Low
+
+## After Creating
+
+Always provide:
+
+1. The ticket identifier (e.g., CALUSA-1242)
+2. Direct link to the ticket
+3. Git branch name for the ticket

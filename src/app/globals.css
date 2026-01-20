@@ -1,0 +1,265 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-switzer:
+    "Switzer-Variable", "Switzer-Regular", system-ui, -apple-system, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-toast: var(--primary-toast);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted-foreground-2: var(--muted-foreground-2);
+  --color-accent: var(--accent);
+  --color-accent-border: var(--accent-border);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-tag-bg-green: var(--tag-bg-green);
+  --color-tag-foreground-green: var(--tag-foreground-green);
+  --color-tag-bg-yellow: var(--tag-bg-yellow);
+  --color-tag-foreground-yellow: var(--tag-foreground-yellow);
+  --color-tag-bg-orange-1: var(--tag-bg-orange-1);
+  --color-tag-foreground-orange-1: var(--tag-foreground-orange-1);
+  --color-tag-bg-orange-2: var(--tag-bg-orange-2);
+  --color-tag-foreground-orange-2: var(--tag-foreground-orange-2);
+  --color-tag-bg-grey: var(--tag-bg-grey);
+  --color-tag-foreground-grey: var(--tag-foreground-grey);
+  --color-tag-bg-red: var(--tag-bg-red);
+  --color-tag-foreground-red: var(--tag-foreground-red);
+  --color-tag-bg-blue: var(--tag-bg-blue);
+  --color-tag-foreground-blue: var(--tag-foreground-blue);
+  --color-destructive: var(--destructive);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-base-error-error-foreground: var(--base-error-error-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-disabled-button-background: var(--disabled-button-background);
+  --color-disabled-button-text: var(--disabled-button-text);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: #ffffff;
+  --border: #e5e7eb;
+  --background: #ffffff;
+  --border: #e5e7eb;
+  --foreground: #111827;
+  --input: #e5e7eb;
+  --primary: #1597b4;
+  --primary-toast: #17c0e7;
+  --primary-foreground: #f9fafb;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --muted-foreground-2: #9ca3af;
+  --accent: #fcfcfc;
+  --accent-border: #f3f4f6;
+  --sidebar: #fcfcfc;
+  --sidebar-accent: #f7f7f7;
+  --sidebar-border: #e5e7eb;
+  --tag-bg-green: #f1f9e9;
+  --tag-foreground-green: #71ca11;
+  --tag-bg-yellow: rgba(234, 179, 8, 0.1);
+  --tag-foreground-yellow: #eab308;
+  --tag-bg-orange-1: rgba(251, 146, 60, 0.1);
+  --tag-foreground-orange-1: #fb923c;
+  --tag-bg-orange-2: rgba(232, 158, 80, 0.1);
+  --tag-foreground-orange-2: #e89e50;
+  --tag-bg-grey: rgba(148, 163, 184, 0.1);
+  --tag-foreground-grey: #9ca3af;
+  --tag-bg-red: rgba(220, 38, 38, 0.1);
+  --tag-foreground-red: #dc2626;
+  --tag-bg-blue: rgba(96, 165, 250, 0.1);
+  --tag-foreground-blue: #60a5fa;
+  --destructive: #dc2626;
+  --input: #e5e7eb;
+  --primary: #1597b4;
+  --primary-toast: #17c0e7;
+  --primary-foreground: #f9fafb;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --muted-foreground-2: #9ca3af;
+  --accent: #fcfcfc;
+  --accent-border: #f3f4f6;
+  --sidebar: #fcfcfc;
+  --sidebar-accent: #f7f7f7;
+  --sidebar-border: #e5e7eb;
+  --tag-bg-green: #f1f9e9;
+  --tag-foreground-green: #71ca11;
+  --tag-bg-yellow: rgba(234, 179, 8, 0.1);
+  --tag-foreground-yellow: #eab308;
+  --tag-bg-orange-1: rgba(251, 146, 60, 0.1);
+  --tag-foreground-orange-1: #fb923c;
+  --tag-bg-orange-2: rgba(232, 158, 80, 0.1);
+  --tag-foreground-orange-2: #e89e50;
+  --tag-bg-grey: rgba(148, 163, 184, 0.1);
+  --tag-foreground-grey: #9ca3af;
+  --tag-bg-red: rgba(220, 38, 38, 0.1);
+  --tag-foreground-red: #dc2626;
+  --tag-bg-blue: rgba(96, 165, 250, 0.1);
+  --tag-foreground-blue: #60a5fa;
+  --destructive: #dc2626;
+  --error: #dc2626;
+  --error-foreground: #fef2f2;
+  --base-error-error-foreground: #fef2f2;
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --disabled-button-background: #229eba;
+  --disabled-button-text: #0d7b94;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body {
+    outline: none;
+  }
+  html:focus,
+  body:focus {
+    outline: none;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family:
+      "Switzer-Variable",
+      "Switzer-Regular",
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes skeleton-pulse-strong {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    background-position: 200% 0;
+    opacity: 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Thin scrollbar + no track background */
+/* Make this the global default, and also opt‑in via .thin-scrollbar */
+
+/* Firefox */
+html,
+body,
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+
+/* Chrome, Safari, Edge */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.thin-scrollbar::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}

@@ -1,0 +1,115 @@
+# Project Rules
+
+## AI Assistant Behavior
+
+- When encountering a new/unfamiliar package or library, use Context7 to look up best practices before implementing
+- When unsure about a pattern or API usage, consult Context7 documentation first
+- Follow existing codebase patterns - scan similar features before creating new ones
+
+### Critical Mode (trigger: "critical mode")
+
+When activated, before implementing ANYTHING:
+
+1. Question the request - Is this the right approach? Are there better alternatives?
+2. Consider trade-offs - What are the pros/cons of different solutions?
+3. Check for existing patterns - Does the codebase already solve this differently?
+4. Propose alternatives - Offer 2-3 different approaches with reasoning
+5. Ask clarifying questions - What's the real problem we're solving?
+6. Only implement after discussing the best path forward
+
+## Code Style
+
+- NEVER add comments unless explicitly told to
+- Do not create index.ts barrel files - use direct file imports instead
+- Avoid hardcoding strings - use constants from centralized files
+
+## File Naming Conventions
+
+- NEVER use generic names like `types.ts`, `actions.ts`, `config.ts`
+- Always prefix with the feature name:
+  - Types: `property-details.types.ts`
+  - Actions: `property-details.actions.ts`
+  - Config: `property-details.config.ts`
+
+## File Organization
+
+- Global constants go in `src/constants/` (e.g., `src/constants/user-types.constants.ts`)
+- Feature types go in `types/` subfolder (e.g., `src/features/property-details/types/property-details.types.ts`)
+- Feature actions go in `api/` subfolder (e.g., `src/features/property-details/api/property-details.actions.ts`)
+- Feature configs go in `config/` subfolder (e.g., `src/features/property-details/config/property-details.config.ts`)
+- Routes are centralized in `src/config/routes.ts`
+
+## Routing
+
+- Use `ROUTES` constants from `src/config/routes.ts` instead of hardcoded paths
+- Use `ROUTES.DASHBOARD.ROOT` pattern (not `ROUTES.DASHBOARD.DASHBOARD`)
+- Dynamic routes should be functions: `UNIT_DETAILS: (id: string) => \`/dashboard/units/\${id}\``
+
+## Types & Constants
+
+- `UserType` and `USER_TYPES` are defined globally in `src/constants/user-types.ts`
+- Feature types should re-export from global when needed: `export type { UserType } from "@/constants/user-types"`
+- Use constants like `USER_TYPES.COMPANY` instead of string literals like `"company"`
+
+## Next.js Patterns
+
+- This project uses Next.js parallel routes (`@individual`, `@multiTenant`, `@company`)
+- Server actions go in `api/` folder with `"use server"` directive
+- Don't pass functions from Server Components to Client Components - use server actions instead
+
+## Component Patterns
+
+- Reusable components go in `src/components/common/`
+- Feature-specific components go in `src/features/[feature]/components/`
+- Configs for reusable components should be in a `config/` subfolder (e.g., `invite-modal/config/invite-modal-config.ts`)
+
+## Code Quality
+
+- If a file exceeds ~300 lines, consider refactoring into smaller modules
+- Follow separation of concerns - split UI, logic, and data fetching
+- DRY: If you're duplicating code across features, extract to `src/components/common/` or `src/constants/`
+- Keep components focused - one responsibility per component
+- Extract reusable hooks to `src/hooks/` or feature-specific `hooks/` folders
+
+## Data Patterns
+
+- Use data adapters/providers for different user types instead of duplicating API logic
+- Mock data should simulate real API structure
+- Keep data fetching in Server Components, pass serializable data to Client Components
+
+## Architecture Principles
+
+- Structure by feature/component, not by technical role (avoid folders like `controllers/`, `services/` at root level)
+- Each feature should be self-contained with its own api/, types/, config/, components/
+- Features should communicate through well-defined interfaces, not reach into each other's internals
+- Avoid "spaghetti" dependencies - if feature A needs something from feature B, feature B should export it explicitly
+- When adding new functionality, first ask: "Does this belong to an existing feature or is it a new one?"
+
+## Component Architecture
+
+- Favor composition over inheritance - build complex UIs by composing simple components
+- Container/Presenter pattern: separate data-fetching (container) from rendering (presenter)
+- Props should flow down, events should flow up - avoid deeply nested prop drilling (use composition)
+- Colocate related code - tests, styles, and utils should live near the component that uses them
+
+## Performance Mindset
+
+- Lazy load components and routes that aren't immediately visible
+- Memoize expensive computations with useMemo, callbacks with useCallback (but don't over-optimize)
+- Prefer Server Components for static content - only use Client Components when interactivity is needed
+- Images should use next/image for automatic optimization
+
+## Forms
+
+- Use react-hook-form for all forms
+- Use Controller component for custom inputs (dropdowns, date pickers, etc.)
+- Define form schemas with Zod in `schemas/` folder (e.g., `invite-tenants.schema.ts`)
+- Use zodResolver for form validation: `resolver: zodResolver(schema)`
+- Keep form state in the component, submit via server actions
+
+## Error Prevention
+
+- Validate data at system boundaries (API responses, form inputs)
+- Use TypeScript strictly - avoid `any`, prefer explicit types
+- Handle loading and error states explicitly in UI
+- Use Zod schemas for runtime validation of external data

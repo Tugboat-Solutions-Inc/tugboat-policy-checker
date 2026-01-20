@@ -1,0 +1,16 @@
+export type {
+  Category,
+  BrandUnit,
+  BrandProperty,
+  Brand,
+  Item,
+  Upload,
+  PropertyCollection,
+  PropertyUnit,
+  AccessUser,
+  OrganizationUser,
+  Access,
+  Property,
+  GetPropertiesResponse,
+  PropertyCreateInput,
+} from "../schemas/property.schemas";

@@ -1,0 +1,7 @@
+Unit name,Tenant email address,Tenant role
+Unit 1,jon.doe@example.com,viewer
+Unit 1,jane.doe@example.com,viewer
+Unit 1,joe.doe@example.com,editor
+Unit 2,alice.smith@example.com,editor
+Unit 3,bob.johnson@example.com,viewer
+Unit 3,emma.johnson@example.com,editor

@@ -1,0 +1,170 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { UserRoundPlus } from "lucide-react";
+import { DetailSection } from "@/components/common/detail-section";
+import { OrganizationUserRow } from "./organization-user-row";
+import { getOrganizationUsers } from "../api/organization-users.actions";
+import { useCurrentOrg, useCurrentUser } from "@/hooks/use-auth";
+import { toast } from "@/components/common/toast/toast";
+import type {
+  OrganizationUser,
+  OrganizationUserRole,
+} from "../types/organization-users.types";
+import { InviteTeamMemberModal } from "@/features/settings/components/invite-team-member-modal";
+
+interface OrganizationUsersSectionProps {
+  onInviteSubmit?: (emails: string[]) => Promise<void>;
+}
+
+export function OrganizationUsersSection({
+  onInviteSubmit,
+}: OrganizationUsersSectionProps) {
+  const currentOrg = useCurrentOrg();
+  const currentUser = useCurrentUser();
+  const [users, setUsers] = useState<OrganizationUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+  const isCurrentUserAdmin =
+    users.find((u) => u.user.id === currentUser?.id)?.role === "ADMIN";
+
+  useEffect(() => {
+    if (!currentOrg?.org_id) return;
+
+    let isCancelled = false;
+
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      try {
+        const result = await getOrganizationUsers(currentOrg.org_id);
+        if (isCancelled) return;
+        if (result.success) {
+          setUsers(result.data);
+        } else {
+          toast.error("Failed to load team members", result.message);
+        }
+      } catch (error) {
+        if (isCancelled) return;
+        toast.error(
+          "Failed to load team members",
+          error instanceof Error ? error.message : "Please try again"
+        );
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchUsers();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentOrg?.org_id]);
+
+  const refetchUsers = async () => {
+    if (!currentOrg?.org_id) return;
+
+    setIsLoading(true);
+    try {
+      const result = await getOrganizationUsers(currentOrg.org_id);
+      if (result.success) {
+        setUsers(result.data);
+      } else {
+        toast.error("Failed to load team members", result.message);
+      }
+    } catch (error) {
+      toast.error(
+        "Failed to load team members",
+        error instanceof Error ? error.message : "Please try again"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRoleChange = (userId: string, newRole: OrganizationUserRole) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+    );
+  };
+
+  const handleRemove = (userId: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+  };
+
+  const handleInvite = () => {
+    setIsInviteModalOpen(true);
+  };
+
+  const handleInviteSubmit = async (emails: string[]) => {
+    await onInviteSubmit?.(emails);
+    await refetchUsers();
+  };
+
+  if (!currentOrg?.org_id) {
+    return null;
+  }
+
+  const teamMembers = users.filter((u) => !u.is_client);
+  
+  const sortedUsers = [...teamMembers].sort((a, b) => {
+    const aIsAdmin = a.role === "ADMIN" ? 0 : 1;
+    const bIsAdmin = b.role === "ADMIN" ? 0 : 1;
+    return aIsAdmin - bIsAdmin;
+  });
+
+  return (
+    <>
+      <DetailSection
+        title="Team Members"
+        description="Manage your internal team's access and roles for this workspace."
+        actions={
+          isCurrentUserAdmin && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleInvite}
+              className="bg-accent-border hover:bg-accent-border/80 text-foreground h-8 sm:h-9 w-fit text-xs sm:text-sm"
+            >
+              <UserRoundPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+              Invite Members
+            </Button>
+          )
+        }
+      >
+        <div className="flex flex-col gap-2 sm:gap-3 w-full lg:max-w-[560px]">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              Loading team members...
+            </div>
+          ) : sortedUsers.length === 0 ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              No team members found
+            </div>
+          ) : (
+            sortedUsers.map((user) => (
+              <OrganizationUserRow
+                key={user.id}
+                user={user}
+                organizationId={currentOrg.org_id}
+                onRoleChange={handleRoleChange}
+                onRemove={handleRemove}
+                isCurrentUserAdmin={isCurrentUserAdmin}
+              />
+            ))
+          )}
+        </div>
+      </DetailSection>
+
+      <InviteTeamMemberModal
+        open={isInviteModalOpen}
+        onOpenChange={setIsInviteModalOpen}
+        onSubmit={handleInviteSubmit}
+      />
+    </>
+  );
+}

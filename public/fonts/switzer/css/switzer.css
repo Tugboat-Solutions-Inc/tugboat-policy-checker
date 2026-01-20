@@ -1,0 +1,188 @@
+/**
+* @license
+*
+* Font Family: Switzer
+* Designed by: Jérémie Hornus
+* URL: https://www.fontshare.com/fonts/switzer
+* © 2025 Indian Type Foundry
+*
+* Switzer Thin 
+* Switzer ThinItalic 
+* Switzer Extralight 
+* Switzer ExtralightItalic 
+* Switzer Light 
+* Switzer LightItalic 
+* Switzer Regular 
+* Switzer Italic 
+* Switzer Medium 
+* Switzer MediumItalic 
+* Switzer Semibold 
+* Switzer SemiboldItalic 
+* Switzer Bold 
+* Switzer BoldItalic 
+* Switzer Extrabold 
+* Switzer ExtraboldItalic 
+* Switzer Black 
+* Switzer BlackItalic 
+* Switzer Variable (Variable font)
+* Switzer VariableItalic (Variable font)
+
+*
+*/
+@font-face {
+  font-family: 'Switzer-Thin';
+  src: url('../fonts/Switzer-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Switzer-ThinItalic';
+  src: url('../fonts/Switzer-ThinItalic.woff2') format('woff2');
+  font-weight: 100;
+  font-display: swap;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Switzer-Extralight';
+  src: url('../fonts/Switzer-Extralight.woff2') format('woff2');
+  font-weight: 200;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Switzer-ExtralightItalic';
+  src: url('../fonts/Switzer-ExtralightItalic.woff2') format('woff2');
+  font-weight: 200;
+  font-display: swap;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Switzer-Light';
+  src: url('../fonts/Switzer-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Switzer-LightItalic';
+  src: url('../fonts/Switzer-LightItalic.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Switzer-Regular';
+  src: url('../fonts/Switzer-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Switzer-Italic';
+  src: url('../fonts/Switzer-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Switzer-Medium';
+  src: url('../fonts/Switzer-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Switzer-MediumItalic';
+  src: url('../fonts/Switzer-MediumItalic.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Switzer-Semibold';
+  src: url('../fonts/Switzer-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Switzer-SemiboldItalic';
+  src: url('../fonts/Switzer-SemiboldItalic.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Switzer-Bold';
+  src: url('../fonts/Switzer-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Switzer-BoldItalic';
+  src: url('../fonts/Switzer-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Switzer-Extrabold';
+  src: url('../fonts/Switzer-Extrabold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Switzer-ExtraboldItalic';
+  src: url('../fonts/Switzer-ExtraboldItalic.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Switzer-Black';
+  src: url('../fonts/Switzer-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Switzer-BlackItalic';
+  src: url('../fonts/Switzer-BlackItalic.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+  font-style: italic;
+}
+/**
+* This is a variable font
+* You can control variable axes as shown below:
+* font-variation-settings: wght 400.0;
+*
+* available axes:
+'wght' (range from 100.0 to 900.0
+*/
+@font-face {
+  font-family: 'Switzer-Variable';
+  src: url('../fonts/Switzer-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+/**
+* This is a variable font
+* You can control variable axes as shown below:
+* font-variation-settings: wght 400.0;
+*
+* available axes:
+'wght' (range from 100.0 to 900.0
+*/
+@font-face {
+  font-family: 'Switzer-VariableItalic';
+  src: url('../fonts/Switzer-VariableItalic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: italic;
+}
+
