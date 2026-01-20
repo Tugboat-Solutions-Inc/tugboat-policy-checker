@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/utils/supabase/client";
 
 interface AuthSocialLoginSectionProps {
   inviteToken?: string;
@@ -7,9 +11,46 @@ interface AuthSocialLoginSectionProps {
 export default function AuthSocialLoginSection({
   inviteToken,
 }: AuthSocialLoginSectionProps) {
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    const supabase = createClient();
+    
+    const redirectTo = `${window.location.origin}/auth/callback${inviteToken ? `?next=/invite?token=${inviteToken}` : ""}`;
+    
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo,
+      },
+    });
+  };
+
+  const handleAppleSignIn = async () => {
+    setIsAppleLoading(true);
+    const supabase = createClient();
+    
+    const redirectTo = `${window.location.origin}/auth/callback${inviteToken ? `?next=/invite?token=${inviteToken}` : ""}`;
+    
+    await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: {
+        redirectTo,
+      },
+    });
+  };
+
   return (
     <div className="space-y-3">
-      <Button variant="outline" size="lg" className="w-full h-12">
+      <Button
+        variant="outline"
+        size="lg"
+        className="w-full h-12"
+        onClick={handleGoogleSignIn}
+        disabled={isGoogleLoading || isAppleLoading}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -22,9 +63,15 @@ export default function AuthSocialLoginSection({
             fill="#111827"
           />
         </svg>
-        Continue with Google
+        {isGoogleLoading ? "Redirecting..." : "Continue with Google"}
       </Button>
-      <Button variant="outline" size="lg" className="w-full h-12">
+      <Button
+        variant="outline"
+        size="lg"
+        className="w-full h-12"
+        onClick={handleAppleSignIn}
+        disabled={isGoogleLoading || isAppleLoading}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -37,7 +84,7 @@ export default function AuthSocialLoginSection({
             fill="#111827"
           />
         </svg>
-        Continue with Apple
+        {isAppleLoading ? "Redirecting..." : "Continue with Apple"}
       </Button>
     </div>
   );
