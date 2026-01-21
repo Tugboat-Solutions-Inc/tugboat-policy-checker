@@ -14,6 +14,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { updateUser } from "@/features/auth/api/user.actions";
 import { createClient } from "@/utils/supabase/client";
 import { useCurrentOrg } from "@/hooks/use-auth";
+import { toast } from "@/components/common/toast/toast";
 
 const memberOnboardingSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -54,10 +55,20 @@ export default function OnboardingMemberPage() {
       const result = await updateUser({
         first_name: data.first_name,
         last_name: data.last_name,
+        settings: {
+          notifications: {
+            sms: true,
+            email: true,
+            marketing: false,
+          },
+        },
       });
 
       if (!result.success) {
-        console.error("Failed to update user:", result.message);
+        console.error("Failed to complete onboarding:", result.message);
+        toast.error("Failed to complete onboarding", result.message || "Please try again");
+        setIsSubmitting(false);
+        return;
       }
 
       await supabase.auth.refreshSession().catch((err) => {

@@ -9,10 +9,7 @@ import { convertImageToBase64 } from "@/lib/utils";
 
 export type { ActionResult };
 
-type UpdateUserWithB64Input = Omit<UpdateUserInput, "profile_picture_url"> & {
-  profile_picture_b64?: string | null;
-  remove_profile_picture?: boolean;
-};
+type UpdateUserWithB64Input = UpdateUserInput;
 
 export async function getUser(): Promise<ActionResult<User>> {
   return fetchWithAuth<User>(API_ENDPOINTS.USERS.ME, {
@@ -34,21 +31,20 @@ export async function updateUser(
   }
 
   const processedUser: UpdateUserWithB64Input = await (async () => {
-    const userWithB64 = user as UpdateUserWithB64Input;
-    const userWithUrl = user as UpdateUserInput;
-    const { profile_picture_url, ...rest } = userWithUrl;
+    const { profile_picture_b64, ...rest } = user;
 
-    if (userWithB64.profile_picture_b64 === null) {
+    if (profile_picture_b64 === null) {
       return {
         ...rest,
         profile_picture_b64: null,
       };
     }
 
-    const picture =
-      userWithB64.profile_picture_b64 || userWithUrl.profile_picture_url;
+    if (!profile_picture_b64) {
+      return rest;
+    }
 
-    const base64Data = await convertImageToBase64(picture);
+    const base64Data = await convertImageToBase64(profile_picture_b64);
 
     if (!base64Data) {
       return rest;

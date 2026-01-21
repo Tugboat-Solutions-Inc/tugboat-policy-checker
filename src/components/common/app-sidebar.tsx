@@ -11,7 +11,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { GalleryVerticalEnd, LogOut } from "lucide-react";
+import { GalleryVerticalEnd, LogOut, Loader2 } from "lucide-react";
 import {
   MenuIcon,
   GearIcon,
@@ -24,7 +24,7 @@ import Logo from "@/components/common/logo";
 import { StatusChip } from "@/components/ui/status-chip";
 import { Button } from "@/components/ui/button";
 import { SidebarPropertyDropdown } from "./sidebar-property-dropdown/sidebar-property-dropdown";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   Popover,
   PopoverContent,
@@ -67,6 +67,7 @@ export default function AppSidebar({
 
   const pathname = usePathname();
   const { toggleSidebar, state } = useSidebar();
+  const [isLoggingOut, startLogout] = useTransition();
 
   const displayName = user?.fullName || user?.email || "";
   const initials = displayName
@@ -314,12 +315,19 @@ export default function AppSidebar({
                   className={`${isCollapsed ? "w-fit p-0" : "w-(--radix-popover-trigger-width) py-1"} bg-background border-0 shadow-[0_1px_69.4px_0_rgba(87,87,87,0.10)]`}
                 >
                   <button
-                    onClick={() => logout()}
-                    className={`flex w-full items-center rounded-md text-sm cursor-pointer hover:text-destructive ${isCollapsed ? "gap-0 p-2" : "gap-2 px-2 py-3"}`}
+                    onClick={() => startLogout(() => logout())}
+                    disabled={isLoggingOut}
+                    className={`flex w-full items-center rounded-md text-sm cursor-pointer hover:text-destructive disabled:opacity-50 disabled:cursor-not-allowed ${isCollapsed ? "gap-0 p-2" : "gap-2 px-2 py-3"}`}
                   >
-                    <LogOut className="h-4 w-4 text-destructive" />
+                    {isLoggingOut ? (
+                      <Loader2 className="h-4 w-4 text-destructive animate-spin" />
+                    ) : (
+                      <LogOut className="h-4 w-4 text-destructive" />
+                    )}
                     {!isCollapsed && (
-                      <span className="text-sm font-medium">Log out</span>
+                      <span className="text-sm font-medium">
+                        {isLoggingOut ? "Logging out..." : "Log out"}
+                      </span>
                     )}
                   </button>
                 </PopoverContent>

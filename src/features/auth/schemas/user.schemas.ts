@@ -20,7 +20,13 @@ export const userSchema = z.object({
   updated_at: z.string(),
 });
 
-export const updateUserInputSchema = userSchema.partial();
+export const updateUserInputSchema = z.object({
+  first_name: z.string(),
+  last_name: z.string(),
+  settings: userSettingsSchema.optional(),
+  profile_picture_b64: z.string().nullable().optional(),
+  remove_profile_picture: z.boolean().optional(),
+});
 
 export type User = z.infer<typeof userSchema>;
 export type UserSettings = z.infer<typeof userSettingsSchema>;
