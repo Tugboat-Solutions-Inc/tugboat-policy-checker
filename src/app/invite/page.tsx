@@ -25,6 +25,15 @@ export default async function InvitePage({ searchParams }: InvitePageProps) {
     );
   }
 
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session) {
+    redirect(ROUTES.DASHBOARD.ROOT);
+  }
+
   const result = await getInviteByToken(token);
 
   if (!result.success) {
@@ -50,15 +59,6 @@ export default async function InvitePage({ searchParams }: InvitePageProps) {
         message="This invite has already been accepted. You can go to the dashboard to access your properties."
       />
     );
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (session) {
-    redirect(ROUTES.DASHBOARD.ROOT);
   }
 
   redirect(ROUTES.AUTH.SIGNUP_WITH_INVITE(token));

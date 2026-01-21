@@ -149,7 +149,7 @@ export function SettingsTabs({
           >
             Profile
           </TabsTrigger>
-          {accountType === USER_TYPES.COMPANY && (
+          {accountType === USER_TYPES.COMPANY && !currentOrg?.is_client && (
             <TabsTrigger
               className={cn(
                 "data-[state=active]:shadow-none data-[state=active]:border-b-foreground data-[state=active]:text-foreground",
