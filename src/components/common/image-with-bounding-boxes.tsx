@@ -9,7 +9,6 @@ interface ImageWithBoundingBoxesProps {
   boundingBoxes: number[] | null;
   alt?: string;
   className?: string;
-  mode?: "single" | "permutations";
 }
 
 export function ImageWithBoundingBoxes({
@@ -17,7 +16,6 @@ export function ImageWithBoundingBoxes({
   boundingBoxes,
   alt = "Image",
   className,
-  mode = "single",
 }: ImageWithBoundingBoxesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -124,66 +122,19 @@ export function ImageWithBoundingBoxes({
       );
     };
 
-    const b0 = boundingBoxes[0];
-    const b1 = boundingBoxes[1];
-    const b2 = boundingBoxes[2];
-    const b3 = boundingBoxes[3];
+    const x1 = boundingBoxes[0];
+    const x2 = boundingBoxes[1];
+    const y1 = boundingBoxes[2];
+    const y2 = boundingBoxes[3];
 
-    if (mode === "permutations") {
-      const boxes = [
-        makeBox({
-          color: "#ef4444",
-          zIndex: 10,
-          xMin: iw - b3,
-          xMax: iw - b1,
-          yMin: b0,
-          yMax: b2,
-        }),
-        makeBox({
-          color: "#22c55e",
-          zIndex: 11,
-          xMin: b1,
-          xMax: b3,
-          yMin: b0,
-          yMax: b2,
-        }),
-        makeBox({
-          color: "#3b82f6",
-          zIndex: 12,
-          xMin: b0,
-          xMax: b2,
-          yMin: b1,
-          yMax: b3,
-        }),
-        makeBox({
-          color: "#eab308",
-          zIndex: 13,
-          xMin: iw - b2,
-          xMax: iw - b0,
-          yMin: b1,
-          yMax: b3,
-        }),
-        makeBox({
-          color: "#a855f7",
-          zIndex: 14,
-          xMin: b0,
-          xMax: b1,
-          yMin: b2,
-          yMax: b3,
-        }),
-      ].filter(Boolean);
-
-      boundingBoxElement = <>{boxes}</>;
-    } else {
-      boundingBoxElement = makeBox({
-        color: "#ef4444",
-        zIndex: 10,
-        xMin: iw - b3,
-        xMax: iw - b1,
-        yMin: b0,
-        yMax: b2,
-      });
-    }
+    boundingBoxElement = makeBox({
+      color: "#22c55e",
+      zIndex: 10,
+      xMin: iw - x2,
+      xMax: iw - x1,
+      yMin: y1,
+      yMax: y2,
+    });
   }
 
   return (
