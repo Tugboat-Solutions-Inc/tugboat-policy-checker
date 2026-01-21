@@ -1,6 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { API_ENDPOINTS } from "@/config/api";
+import { ROUTES } from "@/config/routes";
 import { fetchWithAuth, type ActionResult } from "@/lib/fetch-with-auth";
 import type {
   CreateUploadData,
@@ -14,7 +16,7 @@ export async function createUpload(
   propertyId: string,
   data: CreateUploadData
 ): Promise<ActionResult<Upload>> {
-  return fetchWithAuth<Upload>(
+  const result = await fetchWithAuth<Upload>(
     API_ENDPOINTS.PROPERTIES.UPLOADS(propertyId, unitId, collectionId),
     {
       method: "POST",
@@ -22,6 +24,12 @@ export async function createUpload(
       errorPrefix: "Failed to create upload",
     }
   );
+
+  if (result.success) {
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+  }
+
+  return result;
 }
 
 export async function getUploads(
