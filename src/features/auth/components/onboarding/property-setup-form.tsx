@@ -133,6 +133,7 @@ export default function PropertySetupForm({
       }
     } catch (error) {
       console.error("Form submission error:", error);
+    } finally {
       setLoadingAction(null);
     }
   }
@@ -143,6 +144,7 @@ export default function PropertySetupForm({
       await onSkip?.();
     } catch (error) {
       console.error("Skip error:", error);
+    } finally {
       setLoadingAction(null);
     }
   }
