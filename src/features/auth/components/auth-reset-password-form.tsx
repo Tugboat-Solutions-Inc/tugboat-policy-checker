@@ -56,6 +56,12 @@ export default function AuthResetPasswordForm() {
     password !== confirmPassword;
 
   useEffect(() => {
+    if (error) {
+      setError(null);
+    }
+  }, [password, confirmPassword]);
+
+  useEffect(() => {
     let timeout: NodeJS.Timeout | undefined;
 
     if (!password) {
