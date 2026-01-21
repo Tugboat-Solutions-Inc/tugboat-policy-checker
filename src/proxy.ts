@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { env } from "@/utils/env";
 import { ROUTES } from "@/config/routes";
-import { decodeAccessToken } from "@/lib/jwt";
+import { decodeAccessToken, type DecodedJWT } from "@/lib/jwt";
 
 const protectedRoutes = [ROUTES.DASHBOARD.ROOT, ROUTES.AUTH.ONBOARDING];
 const authOnlyRoutes = [
@@ -21,6 +21,29 @@ const publicRoutes = [
   "/auth/callback",
   "/invite",
 ];
+
+function getOnboardingRoute(decodedToken: DecodedJWT | null): string {
+  if (!decodedToken) {
+    return ROUTES.AUTH.ONBOARDING;
+  }
+
+  const orgType = decodedToken.orgs?.[0]?.org_type;
+  const orgRole = decodedToken.orgs?.[0]?.role;
+
+  if (orgRole === "MEMBER") {
+    return ROUTES.AUTH.ONBOARDING_MEMBER;
+  }
+
+  switch (orgType) {
+    case "MULTI_TENANT":
+      return ROUTES.AUTH.ONBOARDING_MULTI_TENANT;
+    case "COMPANY":
+      return ROUTES.AUTH.ONBOARDING_COMPANY;
+    case "INDIVIDUAL":
+    default:
+      return ROUTES.AUTH.ONBOARDING;
+  }
+}
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -70,7 +93,7 @@ export async function proxy(request: NextRequest) {
     ? decodeAccessToken(session.access_token)
     : null;
 
-  // Force users with incomplete onboarding to onboarding page
+  // Force users with incomplete onboarding to the correct onboarding page
   // But allow them to see the verified page first
   // Admin users skip onboarding entirely
   const isOnboardingPath = path.startsWith(ROUTES.AUTH.ONBOARDING);
@@ -85,9 +108,26 @@ export async function proxy(request: NextRequest) {
     !isVerifiedPath &&
     !isAdmin
   ) {
+    const correctOnboardingRoute = getOnboardingRoute(decodedToken);
     return NextResponse.redirect(
-      new URL(ROUTES.AUTH.ONBOARDING, request.nextUrl)
+      new URL(correctOnboardingRoute, request.nextUrl)
     );
+  }
+
+  // Redirect users on the wrong onboarding page to the correct one
+  if (
+    user &&
+    decodedToken &&
+    decodedToken.onboarding_complete === false &&
+    isOnboardingPath &&
+    !isAdmin
+  ) {
+    const correctOnboardingRoute = getOnboardingRoute(decodedToken);
+    if (path !== correctOnboardingRoute && !path.startsWith(correctOnboardingRoute)) {
+      return NextResponse.redirect(
+        new URL(correctOnboardingRoute, request.nextUrl)
+      );
+    }
   }
 
   // Prevent users who completed onboarding (or are admins) from accessing onboarding page

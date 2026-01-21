@@ -17,6 +17,7 @@ type AddUnitsFormValues = {
 
 type AddUnitsFormProps = {
   onNext?: (values: AddUnitsFormValues) => void;
+  onSkip?: () => void | Promise<void>;
   onlyInputs?: boolean;
   onFormStateChange?: (isValid: boolean, values: AddUnitsFormValues) => void;
   initialValues?: Partial<AddUnitsFormValues>;
@@ -24,6 +25,7 @@ type AddUnitsFormProps = {
 
 export default function AddUnitsForm({
   onNext,
+  onSkip,
   onlyInputs = false,
   onFormStateChange,
   initialValues,
@@ -134,7 +136,13 @@ export default function AddUnitsForm({
             >
               Next step <ChevronRight size={16} />
             </Button>
-            <Button variant="secondary" size="lg" className="w-full h-12 gap-2">
+            <Button
+              variant="secondary"
+              size="lg"
+              className="w-full h-12 gap-2"
+              type="button"
+              onClick={() => onSkip?.()}
+            >
               Skip for now
             </Button>
           </>

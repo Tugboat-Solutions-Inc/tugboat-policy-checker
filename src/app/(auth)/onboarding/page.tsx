@@ -47,31 +47,42 @@ export default function OnboardingIndividualPage() {
         return;
       }
 
-      if (nameData) {
-        const result = await updateUser({
-          first_name: nameData.first_name,
-          last_name: nameData.last_name,
-        });
+      if (!nameData) {
+        toast.error("Missing information", "Please fill in your name");
+        return;
+      }
 
-        if (!result.success) {
-          console.error("Failed to update user:", result.message);
-          toast.error("Failed to update profile", result.message || "Please try again");
-        }
+      const result = await updateUser({
+        first_name: nameData.first_name,
+        last_name: nameData.last_name,
+        settings: {
+          notifications: {
+            sms: true,
+            email: true,
+            marketing: false,
+          },
+        },
+      });
 
-        if (propertyData) {
-          const orgId = currentOrg?.org_id;
-          if (!orgId) {
-            toast.error(
-              "Failed to create property",
-              "Organization not found. Please try refreshing the page."
-            );
-          } else {
-            const propertyResult = await createProperty(
-              preparePropertyData(propertyData, orgId)
-            );
-            if (!propertyResult.success) {
-              toast.error("Failed to create property", propertyResult.message || "Please try again");
-            }
+      if (!result.success) {
+        console.error("Failed to update user:", result.message);
+        toast.error("Failed to complete onboarding", result.message || "Please try again");
+        return;
+      }
+
+      if (propertyData) {
+        const orgId = currentOrg?.org_id;
+        if (!orgId) {
+          toast.error(
+            "Failed to create property",
+            "Organization not found. Please try refreshing the page."
+          );
+        } else {
+          const propertyResult = await createProperty(
+            preparePropertyData(propertyData, orgId)
+          );
+          if (!propertyResult.success) {
+            toast.error("Failed to create property", propertyResult.message || "Please try again");
           }
         }
       }
