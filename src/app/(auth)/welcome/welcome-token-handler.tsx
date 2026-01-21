@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { decodeAccessToken } from "@/lib/jwt";
 import { ROUTES } from "@/config/routes";
@@ -22,7 +21,6 @@ function getOnboardingRoute(orgType: string | undefined, orgRole: string | undef
 }
 
 export function WelcomeTokenHandler({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(true);
 
   useEffect(() => {
@@ -37,7 +35,6 @@ export function WelcomeTokenHandler({ children }: { children: React.ReactNode })
       const params = new URLSearchParams(hash.substring(1));
       const accessToken = params.get("access_token");
       const refreshToken = params.get("refresh_token");
-      const type = params.get("type");
 
       if (!accessToken || !refreshToken) {
         setIsProcessing(false);
@@ -58,19 +55,19 @@ export function WelcomeTokenHandler({ children }: { children: React.ReactNode })
           return;
         }
 
-        window.history.replaceState(null, "", window.location.pathname);
-
         const decodedToken = decodeAccessToken(accessToken);
         const onboardingComplete = decodedToken?.onboarding_complete;
         const orgType = decodedToken?.orgs?.[0]?.org_type;
         const orgRole = decodedToken?.orgs?.[0]?.role;
 
+        let targetRoute: string;
         if (onboardingComplete) {
-          router.replace(ROUTES.DASHBOARD.ROOT);
+          targetRoute = ROUTES.DASHBOARD.ROOT;
         } else {
-          const onboardingRoute = getOnboardingRoute(orgType, orgRole);
-          router.replace(onboardingRoute);
+          targetRoute = getOnboardingRoute(orgType, orgRole);
         }
+
+        window.location.href = targetRoute;
       } catch (error) {
         console.error("Error processing token:", error);
         setIsProcessing(false);
@@ -78,7 +75,7 @@ export function WelcomeTokenHandler({ children }: { children: React.ReactNode })
     };
 
     handleHashToken();
-  }, [router]);
+  }, []);
 
   if (isProcessing) {
     return (

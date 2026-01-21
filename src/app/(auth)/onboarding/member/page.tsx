@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,7 +23,6 @@ const memberOnboardingSchema = z.object({
 type MemberOnboardingFormValues = z.infer<typeof memberOnboardingSchema>;
 
 export default function OnboardingMemberPage() {
-  const router = useRouter();
   const currentOrg = useCurrentOrg();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,20 +42,32 @@ export default function OnboardingMemberPage() {
     setIsSubmitting(true);
 
     try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.error("No session found");
+        window.location.href = ROUTES.AUTH.LOGIN;
+        return;
+      }
+
       const result = await updateUser({
         first_name: data.first_name,
         last_name: data.last_name,
       });
 
-      if (result.success) {
-        const supabase = createClient();
-        await supabase.auth.refreshSession();
-        router.push(ROUTES.DASHBOARD.ROOT);
-      } else {
+      if (!result.success) {
         console.error("Failed to update user:", result.message);
       }
+
+      await supabase.auth.refreshSession().catch((err) => {
+        console.warn("Session refresh failed:", err);
+      });
+      
+      window.location.href = ROUTES.DASHBOARD.ROOT;
     } catch (error) {
       console.error("Error updating user:", error);
+      window.location.href = ROUTES.DASHBOARD.ROOT;
     } finally {
       setIsSubmitting(false);
     }

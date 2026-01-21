@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import IndividualNameForm from "@/features/auth/components/onboarding/individual-name-form";
 import { OnboardingIntroSection } from "@/features/auth/components/onboarding/onboarding-intro-section";
@@ -20,7 +19,6 @@ type NameFormData = {
 };
 
 export default function OnboardingIndividualPage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"1" | "2">("1");
   const [nameData, setNameData] = useState<NameFormData | null>(null);
   const currentOrg = useCurrentOrg();
@@ -39,11 +37,26 @@ export default function OnboardingIndividualPage() {
     propertyData?: PropertySetupFormValues
   ) {
     try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.error("No session found during onboarding completion");
+        toast.error("Session expired", "Please log in again");
+        window.location.href = ROUTES.AUTH.LOGIN;
+        return;
+      }
+
       if (nameData) {
         const result = await updateUser({
           first_name: nameData.first_name,
           last_name: nameData.last_name,
         });
+
+        if (!result.success) {
+          console.error("Failed to update user:", result.message);
+          toast.error("Failed to update profile", result.message || "Please try again");
+        }
 
         if (propertyData) {
           const orgId = currentOrg?.org_id;
@@ -61,21 +74,17 @@ export default function OnboardingIndividualPage() {
             }
           }
         }
-
-        if (result.success) {
-          const supabase = createClient();
-          await supabase.auth.refreshSession();
-          router.push(ROUTES.DASHBOARD.ROOT);
-        } else {
-          console.error("Failed to complete onboarding:", result.message);
-        }
-      } else {
-        const supabase = createClient();
-        await supabase.auth.refreshSession();
-        router.push(ROUTES.DASHBOARD.ROOT);
       }
+
+      await supabase.auth.refreshSession().catch((err) => {
+        console.warn("Session refresh failed, continuing anyway:", err);
+      });
+      
+      window.location.href = ROUTES.DASHBOARD.ROOT;
     } catch (error) {
       console.error("Error completing onboarding:", error);
+      toast.error("Something went wrong", "Please try again");
+      window.location.href = ROUTES.DASHBOARD.ROOT;
     }
   }
 
