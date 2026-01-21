@@ -9,6 +9,7 @@ import type { PropertySetupFormValues } from "@/features/auth/components/onboard
 import { updateUser } from "@/features/auth/api/user.actions";
 import { updateOrganization } from "@/features/dashboard/api/organization.actions";
 import { createProperty } from "@/features/auth/api/property.actions";
+import { createUnit } from "@/features/dashboard/api/unit.actions";
 import { createClient } from "@/utils/supabase/client";
 import { useCurrentOrg, useCurrentUser } from "@/hooks/use-auth";
 import { toast } from "@/components/common/toast/toast";
@@ -96,6 +97,14 @@ export default function OnboardingCompanyPage() {
           );
           if (!propertyResult.success) {
             toast.error("Failed to create property", propertyResult.message || "Please try again");
+          } else if (propertyResult.data) {
+            const unitResult = await createUnit(propertyResult.data.id, {
+              name: "Default",
+              organization_id: orgId,
+            });
+            if (!unitResult.success) {
+              console.warn("Failed to create default unit:", unitResult.message);
+            }
           }
         }
       }

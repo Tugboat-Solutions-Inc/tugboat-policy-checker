@@ -36,8 +36,9 @@ import {
   createPropertyAccess,
 } from "../api/property-access.actions";
 import { updateProperty } from "../api/property-details.actions";
+import { createUnit } from "@/features/dashboard/api/unit.actions";
 import { ROUTES } from "@/config/routes";
-import { useCurrentUser } from "@/hooks/use-auth";
+import { useCurrentUser, useCurrentOrg } from "@/hooks/use-auth";
 import { usePermissions } from "@/components/common/permissions-provider";
 import { CAPABILITIES } from "@/constants/permissions.constants";
 import { useSelectedPropertyStore } from "@/stores/selected-property-store";
@@ -80,6 +81,7 @@ export function PropertyDetailsPage({
     userType !== "MULTI_TENANT" && !initialPropertyAccess
   );
   const user = useCurrentUser();
+  const currentOrg = useCurrentOrg();
 
   useEffect(() => {
     if (initialProperty) return;
@@ -164,6 +166,43 @@ export function PropertyDetailsPage({
   >(initialPropertyAccess ?? []);
   const [isSaving, setIsSaving] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+  const propertyAccessWithOwner = useMemo(() => {
+    if (!user || !currentOrg) return propertyAccessState;
+    
+    const isOrgAdmin = currentOrg.owner || currentOrg.role === "ADMIN";
+    if (!isOrgAdmin) return propertyAccessState;
+    
+    const userAlreadyInList = propertyAccessState.some(
+      (access) => access.organization_user.user_id === user.id
+    );
+    if (userAlreadyInList) return propertyAccessState;
+
+    const ownerAccess: propertyAccess = {
+      id: `owner-${user.id}`,
+      organization_user: {
+        id: `org-user-${user.id}`,
+        user_id: user.id,
+        user: {
+          id: user.id,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          profile_picture_url: user.profilePictureUrl,
+        },
+        organization_id: currentOrg.org_id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        role: "ADMIN",
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      access_type: "EDITOR",
+      is_client: false,
+    };
+
+    return [ownerAccess, ...propertyAccessState];
+  }, [propertyAccessState, user, currentOrg]);
 
   useEffect(() => {
     if (initialProperty) {
@@ -251,18 +290,33 @@ export function PropertyDetailsPage({
 
   const handleInviteSubmit = useCallback(
     async (data: any) => {
-      if (!currentProperty) {
+      if (!currentProperty || !currentOrg) {
         return;
       }
 
-      const unitId = getFirstUnitId(currentProperty);
+      let unitId = getFirstUnitId(currentProperty);
+      
       if (!unitId) {
-        toast.error(
-          "No unit found",
-          "This property needs a unit to invite users"
-        );
-        return;
+        const unitResult = await createUnit(currentProperty.id, {
+          name: "Default",
+          organization_id: currentOrg.org_id,
+        });
+        
+        if (!unitResult.success) {
+          toast.error(
+            "Failed to create unit",
+            unitResult.message || "Please try again"
+          );
+          return;
+        }
+        unitId = unitResult.data.id;
+        
+        const refreshedProperty = await getPropertyById(currentProperty.id);
+        if (refreshedProperty.success && refreshedProperty.data) {
+          setProperty(refreshedProperty.data);
+        }
       }
+
       const invites = data.tenantInvites;
 
       const users = invites.map((invite: any) => ({
@@ -294,7 +348,7 @@ export function PropertyDetailsPage({
         throw new Error(errorMessage);
       }
     },
-    [currentProperty]
+    [currentProperty, currentOrg]
   );
 
   const handleSave = useCallback(async () => {
@@ -486,7 +540,7 @@ export function PropertyDetailsPage({
                 <Skeleton className="h-[100px] w-full" />
               ) : (
                 <MemoizedUserManagementSection
-                  propertyAccess={propertyAccessState}
+                  propertyAccess={propertyAccessWithOwner}
                   propertyId={currentProperty.id}
                   config={config}
                   onRoleChange={handleRoleChange}

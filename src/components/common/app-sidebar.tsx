@@ -30,7 +30,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { logout } from "@/features/auth/api/auth.actions";
+import { useLogout } from "@/hooks/use-logout";
 import { ROUTES } from "@/config/routes";
 import { USER_TYPES } from "@/constants/user-types";
 import Image from "next/image";
@@ -68,6 +68,7 @@ export default function AppSidebar({
   const pathname = usePathname();
   const { toggleSidebar, state } = useSidebar();
   const [isLoggingOut, startLogout] = useTransition();
+  const logout = useLogout();
 
   const displayName = user?.fullName || user?.email || "";
   const initials = displayName
@@ -315,7 +316,7 @@ export default function AppSidebar({
                   className={`${isCollapsed ? "w-fit p-0" : "w-(--radix-popover-trigger-width) py-1"} bg-background border-0 shadow-[0_1px_69.4px_0_rgba(87,87,87,0.10)]`}
                 >
                   <button
-                    onClick={() => startLogout(() => logout())}
+                    onClick={() => startLogout(logout)}
                     disabled={isLoggingOut}
                     className={`flex w-full items-center rounded-md text-sm cursor-pointer hover:text-destructive disabled:opacity-50 disabled:cursor-not-allowed ${isCollapsed ? "gap-0 p-2" : "gap-2 px-2 py-3"}`}
                   >
