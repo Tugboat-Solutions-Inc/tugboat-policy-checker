@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, Fragment } from "react";
+import { useState, useMemo, useEffect, Fragment, useCallback, memo } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   flexRender,
@@ -116,10 +116,20 @@ export default function TemplateTable({
     return items;
   }, [allItems, debouncedSearch, selectedArea, selectedCategory]);
 
-  useEffect(() => {
-    const areaIds = new Set(filteredItems.map((item) => item.area));
-    setExpandedAreas(areaIds);
+  const expandAllAreas = useCallback(() => {
+    const allAreaIds = new Set(filteredItems.map((item) => item.area));
+    setExpandedAreas(allAreaIds);
   }, [filteredItems]);
+
+  const collapseAllAreas = useCallback(() => {
+    setExpandedAreas(new Set());
+  }, []);
+
+  // Don't auto-expand all areas - let user expand manually for better performance
+  // useEffect(() => {
+  //   const areaIds = new Set(filteredItems.map((item) => item.area));
+  //   setExpandedAreas(areaIds);
+  // }, [filteredItems]);
 
   useEffect(() => {
     setRowSelection({});
@@ -155,7 +165,7 @@ export default function TemplateTable({
     return filteredItems.filter((item) => rowSelection[item.id]);
   }, [filteredItems, rowSelection]);
 
-  const toggleArea = (area: string) => {
+  const toggleArea = useCallback((area: string) => {
     setExpandedAreas((prev) => {
       const next = new Set(prev);
       if (next.has(area)) {
@@ -165,7 +175,7 @@ export default function TemplateTable({
       }
       return next;
     });
-  };
+  }, []);
 
   const sortedGroupedItems = useMemo(() => {
     if (sorting.length === 0) {
@@ -173,19 +183,20 @@ export default function TemplateTable({
     }
 
     const sortedGroups: Record<string, TemplateTableItem[]> = {};
-    Object.entries(groupedItems).forEach(([area, areaItems]) => {
-      const sorted = [...areaItems].sort((a, b) => {
-        for (const sort of sorting) {
-          const aValue = a[sort.id as keyof TemplateTableItem];
-          const bValue = b[sort.id as keyof TemplateTableItem];
+    const sortFn = (a: TemplateTableItem, b: TemplateTableItem) => {
+      for (const sort of sorting) {
+        const aValue = a[sort.id as keyof TemplateTableItem];
+        const bValue = b[sort.id as keyof TemplateTableItem];
 
-          if (aValue === undefined || bValue === undefined) continue;
-          if (aValue < bValue) return sort.desc ? 1 : -1;
-          if (aValue > bValue) return sort.desc ? -1 : 1;
-        }
-        return 0;
-      });
-      sortedGroups[area] = sorted;
+        if (aValue === undefined || bValue === undefined) continue;
+        if (aValue < bValue) return sort.desc ? 1 : -1;
+        if (aValue > bValue) return sort.desc ? -1 : 1;
+      }
+      return 0;
+    };
+
+    Object.entries(groupedItems).forEach(([area, areaItems]) => {
+      sortedGroups[area] = [...areaItems].sort(sortFn);
     });
     return sortedGroups;
   }, [groupedItems, sorting]);
@@ -196,10 +207,44 @@ export default function TemplateTable({
       .filter((area) => Object.keys(sortedGroupedItems).includes(area));
   }, [template, sortedGroupedItems]);
 
-  const getSelectedCountForArea = (area: string) => {
+  const getSelectedCountForArea = useCallback((area: string) => {
     const areaItems = sortedGroupedItems[area] || [];
     return areaItems.filter((item) => rowSelection[item.id]).length;
-  };
+  }, [sortedGroupedItems, rowSelection]);
+
+  const TemplateTableRow = memo(({ 
+    item, 
+    row, 
+    onToggle 
+  }: { 
+    item: TemplateTableItem; 
+    row: ReturnType<typeof table.getRowModel>['rows'][0];
+    onToggle: () => void;
+  }) => (
+    <TableRow
+      className="cursor-pointer hover:bg-muted/50 transition-colors"
+      onClick={onToggle}
+    >
+      {row.getVisibleCells().map((cell) => (
+        <TableCell
+          key={cell.id}
+          style={{ width: cell.column.getSize() }}
+          className={cn(
+            "text-left",
+            cell.column.id === "select" && "pr-0",
+            cell.column.id === "name" && "pl-4"
+          )}
+        >
+          {flexRender(
+            cell.column.columnDef.cell,
+            cell.getContext()
+          )}
+        </TableCell>
+      ))}
+    </TableRow>
+  ));
+
+  TemplateTableRow.displayName = "TemplateTableRow";
 
   const hasFilters = debouncedSearch || selectedArea !== "all" || selectedCategory !== "all";
 
@@ -321,28 +366,12 @@ export default function TemplateTable({
                         if (!row) return null;
 
                         return (
-                          <TableRow
+                          <TemplateTableRow
                             key={item.id}
-                            className="cursor-pointer hover:bg-muted/50 transition-colors"
-                            onClick={() => row.toggleSelected(!row.getIsSelected())}
-                          >
-                            {row.getVisibleCells().map((cell) => (
-                              <TableCell
-                                key={cell.id}
-                                style={{ width: cell.column.getSize() }}
-                                className={cn(
-                                  "text-left",
-                                  cell.column.id === "select" && "pr-0",
-                                  cell.column.id === "name" && "pl-4"
-                                )}
-                              >
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext()
-                                )}
-                              </TableCell>
-                            ))}
-                          </TableRow>
+                            item={item}
+                            row={row}
+                            onToggle={() => row.toggleSelected(!row.getIsSelected())}
+                          />
                         );
                       })}
                   </Fragment>

@@ -15,7 +15,6 @@ import type { CollectionItem } from "../../types/collection-details.types";
 import { InventoryTemplateDialog } from "../template-inventory/inventory-template-dialog";
 import { ItemDetailsSheet } from "../item-details-sheet";
 import { ImageEnlargeDialog } from "./image-enlarge-dialog";
-import { useSelectedCollectionStore } from "@/stores/selected-collection-store";
 import type {
   CreateItemInput,
   Item,
@@ -40,6 +39,7 @@ interface ItemsTableProps {
   propertyId: string;
   unitId: string;
   collectionId: string;
+  collectionName: string;
   initialItems: Item[];
   initialPagination: {
     currentPage: number;
@@ -55,12 +55,12 @@ export function ItemsTable({
   propertyId,
   unitId,
   collectionId,
+  collectionName,
   initialItems,
   initialPagination,
 }: ItemsTableProps) {
   const { can } = usePermissions();
   const viewOnly = !can(CAPABILITIES.EDIT_COLLECTIONS);
-  const { selectedCollection } = useSelectedCollectionStore();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoadingBrandsCategories, setIsLoadingBrandsCategories] =
@@ -401,7 +401,7 @@ export function ItemsTable({
         propertyId={propertyId}
         unitId={unitId}
         collectionId={collectionId}
-        collectionName={selectedCollection?.name || ""}
+        collectionName={collectionName}
       />
 
       <ItemDetailsSheet
