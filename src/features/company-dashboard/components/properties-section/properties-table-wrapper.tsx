@@ -11,7 +11,7 @@ function mapPropertiesToTableProperties(properties: Property[]): TableProperty[]
     id: property.id,
     propertyName: property.name,
     propertyAddress: property.address,
-    clients: property.accesses?.length ?? 0,
+    clients: property.accesses?.filter((access) => access.is_client).length ?? 0,
   }));
 }
 

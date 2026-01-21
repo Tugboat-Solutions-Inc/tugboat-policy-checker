@@ -10,6 +10,7 @@ import AddUnitsForm from "@/features/auth/components/onboarding/add-units-form";
 import { updateUser } from "@/features/auth/api/user.actions";
 import { updateOrganization } from "@/features/dashboard/api/organization.actions";
 import { createProperty } from "@/features/auth/api/property.actions";
+import { createUnit } from "@/features/dashboard/api/unit.actions";
 import { createClient } from "@/utils/supabase/client";
 import { useCurrentOrg, useCurrentUser } from "@/hooks/use-auth";
 import { toast } from "@/components/common/toast/toast";
@@ -96,7 +97,7 @@ export default function OnboardingMultiTenantPage() {
     setActiveTab("2");
   }
 
-  async function handleCompleteOnboarding(propertyValues?: PropertySetupFormValues) {
+  async function handleCompleteOnboarding(propertyValues?: PropertySetupFormValues, units?: AddUnitsFormValues) {
     try {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
@@ -142,6 +143,18 @@ export default function OnboardingMultiTenantPage() {
           );
           if (!propertyResult.success) {
             toast.error("Failed to create property", propertyResult.message || "Please try again");
+          } else if (units && units.units.length > 0 && propertyResult.data) {
+            const unitPromises = units.units.map((unit) =>
+              createUnit(propertyResult.data.id, {
+                name: unit.unit_name,
+                organization_id: orgId,
+              })
+            );
+            const unitResults = await Promise.all(unitPromises);
+            const failedUnits = unitResults.filter((r) => !r.success);
+            if (failedUnits.length > 0) {
+              toast.error("Some units failed to create", `${failedUnits.length} unit(s) could not be created`);
+            }
           }
         }
       }
@@ -181,7 +194,7 @@ export default function OnboardingMultiTenantPage() {
   }
 
   async function handleUnitsSubmit(data: AddUnitsFormValues) {
-    await handleCompleteOnboarding(propertyData || undefined);
+    await handleCompleteOnboarding(propertyData || undefined, data);
   }
 
   async function handleUnitsSkip() {

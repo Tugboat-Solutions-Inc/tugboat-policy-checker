@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
-import { logout } from "@/features/auth/api/auth.actions";
+import { useLogout } from "@/hooks/use-logout";
 import { Check, ChevronUp, LogOut, Search, Loader } from "lucide-react";
 import { useEffect, useMemo, useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -47,6 +47,7 @@ export function SuperadminUserChangeMenu({
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isPending, startTransition] = useTransition();
   const currentUser = useCurrentUser();
+  const logout = useLogout();
   const clearImpersonation = useImpersonationStore((state) => state.clearImpersonation);
   const setImpersonatedUser = useImpersonationStore((state) => state.setImpersonatedUser);
   const setImpLoading = useImpersonationStore((state) => state.setLoading);

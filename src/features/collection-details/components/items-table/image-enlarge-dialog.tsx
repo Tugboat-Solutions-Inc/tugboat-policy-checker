@@ -58,7 +58,6 @@ export function ImageEnlargeDialog({
                 imageUrl={imageUrl}
                 boundingBoxes={boundingBoxes || null}
                 alt={alt}
-                mode="permutations"
               />
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">

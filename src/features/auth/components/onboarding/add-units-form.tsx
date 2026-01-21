@@ -69,7 +69,11 @@ export default function AddUnitsForm({
 
   async function onSubmitForm(data: addUnitsInput) {
     try {
-      onNext?.(data);
+      const finalUnits = [...data.units];
+      if (currentUnitName.trim()) {
+        finalUnits.unshift({ unit_name: currentUnitName.trim() });
+      }
+      onNext?.({ units: finalUnits });
     } catch {}
   }
 
