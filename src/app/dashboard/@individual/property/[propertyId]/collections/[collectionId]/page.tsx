@@ -69,10 +69,17 @@ async function CollectionItems({
   collectionId: string;
   unitId: string;
 }) {
-  const itemsResult = await getItems(propertyId, unitId, collectionId, {
-    limit: 10,
-    page: 1,
-  });
+  const [collectionResult, itemsResult] = await Promise.all([
+    getCachedCollectionById(propertyId, collectionId, unitId),
+    getItems(propertyId, unitId, collectionId, {
+      limit: 10,
+      page: 1,
+    }),
+  ]);
+
+  if (!collectionResult.success) {
+    notFound();
+  }
 
   const itemsData = itemsResult.success ? itemsResult.data : null;
 
@@ -81,6 +88,7 @@ async function CollectionItems({
       propertyId={propertyId}
       unitId={unitId}
       collectionId={collectionId}
+      collectionName={collectionResult.data.name}
       initialItems={itemsData?.data ?? []}
       initialPagination={{
         currentPage: itemsData?.current_page ?? 1,

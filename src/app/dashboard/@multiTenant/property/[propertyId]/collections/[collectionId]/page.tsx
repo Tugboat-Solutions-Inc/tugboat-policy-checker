@@ -65,6 +65,7 @@ async function CollectionContent({
           propertyId={propertyId}
           unitId={unitId}
           collectionId={collectionId}
+          collectionName={collectionResult.data.name}
           initialItems={itemsData?.data ?? []}
           initialPagination={{
             currentPage: itemsData?.current_page ?? 1,

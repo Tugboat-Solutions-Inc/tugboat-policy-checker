@@ -9,6 +9,7 @@ import CollectionItem from "./collection-item";
 import type { TemplateTableItem } from "./template-table-columns";
 import { addItemsToCollection } from "../../api/template.actions";
 import { toast } from "@/components/common/toast/toast";
+import { getCategories, createCategory } from "../../api/category.actions";
 
 interface TemplateModalProps {
   propertyId: string;
@@ -50,15 +51,9 @@ export default function TemplateModal({
   };
 
   const handleAddItems = async () => {
-    const itemsToAdd = selectedItems
-      .filter((item) => checkedItems.has(item.id))
-      .map((item) => ({
-        name: item.name,
-        item_condition: "GOOD" as const,
-        category_id: item.categoryId,
-      }));
+    const checkedSelectedItems = selectedItems.filter((item) => checkedItems.has(item.id));
 
-    if (itemsToAdd.length === 0) {
+    if (checkedSelectedItems.length === 0) {
       toast.error("No items selected", "Please select at least one item to add");
       return;
     }
@@ -66,10 +61,48 @@ export default function TemplateModal({
     setIsAdding(true);
     const loadingToast = toast.loading(
       "Adding items",
-      `Adding ${itemsToAdd.length} items to ${collectionName}...`
+      `Adding ${checkedSelectedItems.length} ${checkedSelectedItems.length === 1 ? "item" : "items"} to ${collectionName}...`
     );
 
     try {
+      const uniqueCategoryNames = [...new Set(
+        checkedSelectedItems
+          .map((item) => item.category)
+          .filter((name): name is string => !!name && name !== "Uncategorized")
+      )];
+
+      const categoryNameToId: Record<string, string> = {};
+
+      if (uniqueCategoryNames.length > 0) {
+        const existingCategoriesResult = await getCategories(propertyId, unitId);
+        const existingCategories = existingCategoriesResult.success 
+          ? existingCategoriesResult.data.data 
+          : [];
+
+        for (const categoryName of uniqueCategoryNames) {
+          const existing = existingCategories.find(
+            (c) => c.name.toLowerCase() === categoryName.toLowerCase()
+          );
+
+          if (existing) {
+            categoryNameToId[categoryName] = existing.id;
+          } else {
+            const createResult = await createCategory(propertyId, unitId, { name: categoryName });
+            if (createResult.success) {
+              categoryNameToId[categoryName] = createResult.data.id;
+            }
+          }
+        }
+      }
+
+      const itemsToAdd = checkedSelectedItems.map((item) => ({
+        name: item.name,
+        item_condition: "GOOD" as const,
+        category_id: item.category && item.category !== "Uncategorized"
+          ? categoryNameToId[item.category]
+          : undefined,
+      }));
+
       const result = await addItemsToCollection(
         propertyId,
         unitId,
@@ -89,18 +122,18 @@ export default function TemplateModal({
         } else {
           toast.warning(
             "Partially added",
-            `Added ${success} items, ${failed} failed`
+            `Added ${success} ${success === 1 ? "item" : "items"} to ${collectionName}, ${failed} ${failed === 1 ? "item" : "items"} failed`
           );
         }
         setIsModalOpen(false);
         onItemsAdded();
         onClose();
       } else {
-        toast.error("Failed to add items", "Please try again");
+        toast.error("Failed to add items", `Could not add items to ${collectionName}. Please try again.`);
       }
     } catch {
       toast.dismiss(loadingToast);
-      toast.error("Failed to add items", "Please try again");
+      toast.error("Failed to add items", `Could not add items to ${collectionName}. Please try again.`);
     } finally {
       setIsAdding(false);
     }

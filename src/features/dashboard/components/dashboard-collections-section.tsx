@@ -205,6 +205,11 @@ export function DashboardCollectionsSection({
 
       const cover_image_b64 = await convertImageToBase64(coverImageFile);
 
+      const loadingToast = toast.loading(
+        "Creating collection",
+        `Creating "${collectionName}"${photos.length > 0 ? ` and uploading ${photos.length} ${photos.length === 1 ? "photo" : "photos"}...` : "..."}`
+      );
+
       const result = await createCollection(
         property.id,
         unitId,
@@ -216,7 +221,8 @@ export function DashboardCollectionsSection({
       );
 
       if (!result.success) {
-        toast.error(`Failed to create collection: ${result.message}`);
+        toast.dismiss(loadingToast);
+        toast.error(`Failed to create collection "${collectionName}"`, result.message || "Please try again");
         return;
       }
 
@@ -246,17 +252,20 @@ export function DashboardCollectionsSection({
         );
 
         if (!uploadResult.success) {
+          toast.dismiss(loadingToast);
           toast.error(
-            `Collection created but failed to upload photos: ${uploadResult.message}`
+            `Collection "${collectionName}" created but failed to upload photos`,
+            uploadResult.message || "Please try uploading photos again"
           );
         } else {
           startDeduplication(property.id, unitId, collectionId);
         }
       }
 
+      toast.dismiss(loadingToast);
       setSelectedCollection(result.data);
       if (photos.length > 0) {
-        toast.success(`Collection "${collectionName}" created! We're detecting items from your photos.`);
+        toast.success(`Collection "${collectionName}" created!`, "We're detecting items from your photos. This may take a moment.");
       } else {
         toast.success(`Collection "${collectionName}" created!`);
       }

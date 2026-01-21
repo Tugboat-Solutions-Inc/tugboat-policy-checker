@@ -174,6 +174,13 @@ export function DashboardLastUploadsSection({
         return;
       }
 
+      const collectionExists = collections.some(c => c.id === selectedCollection.id);
+      if (!collectionExists) {
+        toast.error("Collection no longer exists", "Please select a different collection");
+        setSelectedCollection(null);
+        return;
+      }
+
       const unitId = getFirstUnitId(property);
       if (!unitId) {
         toast.error("No unit found for this property");
@@ -205,6 +212,11 @@ export function DashboardLastUploadsSection({
         })
       );
 
+      const loadingToast = toast.loading(
+        "Uploading photos",
+        `Uploading ${photos.length} ${photos.length === 1 ? "photo" : "photos"} to ${selectedCollection.name}...`
+      );
+
       const response = await createUpload(
         selectedCollection.id,
         unitId,
@@ -215,14 +227,16 @@ export function DashboardLastUploadsSection({
         }
       );
 
+      toast.dismiss(loadingToast);
+
       if (!response.success) {
-        toast.error(response.message || "Failed to create upload");
+        toast.error("Failed to create upload", response.message || `Could not upload photos to ${selectedCollection.name}`);
         return;
       }
 
       startDeduplication(property.id, unitId, selectedCollection.id);
 
-      toast.success(`Photos uploaded to ${selectedCollection.name}! We're now detecting items. This may take a moment.`);
+      toast.success(`Photos uploaded to ${selectedCollection.name}!`, `We're now detecting items. This may take a moment.`);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to create upload";
