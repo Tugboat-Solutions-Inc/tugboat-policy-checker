@@ -23,7 +23,7 @@ export const userSchema = z.object({
 export const updateUserInputSchema = z.object({
   first_name: z.string(),
   last_name: z.string(),
-  settings: userSettingsSchema,
+  settings: userSettingsSchema.optional(),
   profile_picture_b64: z.string().nullable().optional(),
   remove_profile_picture: z.boolean().optional(),
 });
