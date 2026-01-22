@@ -30,6 +30,7 @@ export async function createItem(
 
   if (result.success) {
     revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.COLLECTION(propertyId, collectionId, unitId));
   }
 
   return result;
@@ -112,6 +113,7 @@ export async function deleteItems(
 
   if (result.success) {
     revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.COLLECTION(propertyId, collectionId, unitId));
   }
 
   return result;
@@ -140,6 +142,7 @@ export async function updateItem(
 
   if (result.success) {
     revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.COLLECTION(propertyId, collectionId, unitId));
   }
 
   return result;

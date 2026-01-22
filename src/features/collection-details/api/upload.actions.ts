@@ -104,19 +104,23 @@ export async function retryUpload(
   unitId: string,
   collectionId: string,
   uploadId: string
-): Promise<ActionResult<Upload>> {
-  const result = await fetchWithAuth<Upload>(
-    API_ENDPOINTS.PROPERTIES.UPLOADS_RETRY(
-      propertyId,
-      unitId,
-      collectionId,
-      uploadId
-    ),
+): Promise<ActionResult<null>> {
+  const url = API_ENDPOINTS.PROPERTIES.UPLOADS_RETRY(
+    propertyId,
+    unitId,
+    collectionId,
+    uploadId
+  );
+  
+  const result = await fetchWithAuth<null>(
+    url,
     {
       method: "POST",
       errorPrefix: "Failed to retry upload",
     }
   );
+
+  console.log("[retryUpload] Result:", result);
 
   if (result.success) {
     revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));

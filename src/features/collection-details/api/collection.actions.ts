@@ -143,7 +143,7 @@ export async function resolveDuplicationGroup(
   dupeGroupId: string,
   itemIdsToDelete: string[]
 ): Promise<ActionResult<null>> {
-  return fetchWithAuth<null>(
+  const result = await fetchWithAuth<null>(
     API_ENDPOINTS.PROPERTIES.RESOLVE_DUPE_GROUP(
       propertyId,
       unitId,
@@ -156,6 +156,13 @@ export async function resolveDuplicationGroup(
       errorPrefix: "Failed to resolve duplicates",
     }
   );
+
+  if (result.success) {
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.COLLECTION(propertyId, collectionId, unitId));
+  }
+
+  return result;
 }
 
 export async function updateCollectionFavorite(
