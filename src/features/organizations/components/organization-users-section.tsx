@@ -8,11 +8,27 @@ import { OrganizationUserRow } from "./organization-user-row";
 import { getOrganizationUsers } from "../api/organization-users.actions";
 import { useCurrentOrg, useCurrentUser } from "@/hooks/use-auth";
 import { toast } from "@/components/common/toast/toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import type {
   OrganizationUser,
   OrganizationUserRole,
 } from "../types/organization-users.types";
 import { InviteTeamMemberModal } from "@/features/settings/components/invite-team-member-modal";
+
+function UserRowSkeleton() {
+  return (
+    <div className="bg-background border border-input rounded-lg min-h-12 px-2 py-2 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        <Skeleton className="size-7 sm:size-8 rounded" />
+        <div className="flex flex-col gap-1.5">
+          <Skeleton className="h-3.5 sm:h-4 w-28 sm:w-36" />
+          <Skeleton className="h-2.5 sm:h-3 w-36 sm:w-44" />
+        </div>
+      </div>
+      <Skeleton className="h-5 w-20 sm:w-24" />
+    </div>
+  );
+}
 
 interface OrganizationUsersSectionProps {
   onInviteSubmit?: (emails: string[]) => Promise<void>;
@@ -138,9 +154,11 @@ export function OrganizationUsersSection({
       >
         <div className="flex flex-col gap-2 sm:gap-3 w-full lg:max-w-[560px]">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8 text-muted-foreground">
-              Loading team members...
-            </div>
+            <>
+              <UserRowSkeleton />
+              <UserRowSkeleton />
+              <UserRowSkeleton />
+            </>
           ) : sortedUsers.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
               No team members found

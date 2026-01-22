@@ -52,10 +52,10 @@ export function SidebarPropertyDropdown({
   const displayName = useMemo(() => {
     if (!selectedProperty) return null;
     
-    if (isTenant && selectedProperty.units?.length === 1) {
+    if (isTenant && selectedProperty.units && selectedProperty.units.length > 0) {
       const unitName = selectedProperty.units[0]?.name;
       if (unitName && unitName !== "Default" && unitName !== "Default Unit") {
-        return unitName;
+        return `${unitName} (${selectedProperty.name})`;
       }
     }
     
@@ -221,7 +221,18 @@ export function SidebarPropertyDropdown({
               />
             )}
 
-            {(userType === USER_TYPES.MULTI_TENANT || isCompany) && (
+            {userType === USER_TYPES.MULTI_TENANT && isTenant && (
+              <IndividualPropertiesSection
+                ownedProperties={[]}
+                sharedProperties={[...ownedProperties, ...sharedProperties]}
+                selectedPropertyId={selectedProperty?.id}
+                onPropertySelect={handlePropertySelect}
+                onPropertyHover={handlePropertyHover}
+                showUnitNames
+              />
+            )}
+
+            {((userType === USER_TYPES.MULTI_TENANT && !isTenant) || isCompany) && (
               <CompanyPropertiesSection
                 filteredProperties={filteredProperties}
                 selectedPropertyId={selectedProperty?.id}

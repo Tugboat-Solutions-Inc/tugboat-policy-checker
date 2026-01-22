@@ -23,7 +23,7 @@ export function InviteIntroSection({ invite, headingId }: InviteIntroSectionProp
         aria-label="Go to Tugboat homepage"
         className="inline-block mb-24 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
       >
-        <Logo className="h-6" aria-hidden="true" />
+        <Logo className="h-7" aria-hidden="true" />
         <span className="sr-only">Tugboat</span>
       </Link>
 

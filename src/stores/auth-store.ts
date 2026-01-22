@@ -13,6 +13,7 @@ interface AuthActions {
   clearAuth: () => void;
   getCurrentOrg: () => DecodedJWT["orgs"][0] | null;
   setHydrated: () => void;
+  updateOrgName: (orgId: string, newName: string) => void;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -45,6 +46,22 @@ export const useAuthStore = create<AuthStore>()(
           return null;
         }
         return state.decodedToken.orgs[0];
+      },
+
+      updateOrgName: (orgId: string, newName: string) => {
+        const state = get();
+        if (!state.decodedToken?.orgs) return;
+
+        const updatedOrgs = state.decodedToken.orgs.map((org) =>
+          org.org_id === orgId ? { ...org, org_name: newName } : org
+        );
+
+        set({
+          decodedToken: {
+            ...state.decodedToken,
+            orgs: updatedOrgs,
+          },
+        });
       },
     }),
     {

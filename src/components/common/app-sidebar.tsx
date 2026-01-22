@@ -36,7 +36,7 @@ import { USER_TYPES } from "@/constants/user-types";
 import Image from "next/image";
 import { SuperadminUserChangeMenu } from "@/features/dashboard/components/superadmin-user-change-menu";
 import LogoNoText from "./logo-notext";
-import { useCurrentUser, useAdminUser } from "@/hooks/use-auth";
+import { useCurrentUser, useAdminUser, useCurrentOrg } from "@/hooks/use-auth";
 import { useSelectedProperty } from "@/hooks/use-properties";
 import type { Property } from "@/features/auth/types/property.types";
 import { env } from "@/lib/env";
@@ -58,6 +58,7 @@ export default function AppSidebar({
 }: AppSidebarProps) {
   const user = useCurrentUser();
   const adminUser = useAdminUser();
+  const currentOrg = useCurrentOrg();
   const ownedProperties = initialOwnedProperties;
   const sharedProperties = initialSharedProperties;
   const selectedProperty = useSelectedProperty(
@@ -78,7 +79,9 @@ export default function AppSidebar({
     .toUpperCase()
     .slice(0, 2);
 
-  const isAdmin = adminUser?.role === "ADMIN";
+  const isSuperAdmin = adminUser?.role === "ADMIN";
+  const isOrgAdmin = currentOrg?.owner || currentOrg?.role === "ADMIN";
+  const isClient = currentOrg?.is_client === true;
   const isCollapsed = state === "collapsed";
   return (
     <Sidebar
@@ -89,7 +92,7 @@ export default function AppSidebar({
         <div className="flex flex-col gap-[18px]">
           <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center px-4 transition-all duration-300 ease-in-out">
             <div className="group-data-[collapsible=icon]:hidden transition-opacity duration-300 ease-in-out">
-              {!isAdmin ? (
+              {!isSuperAdmin ? (
                 <>
                   {accountType === USER_TYPES.MULTI_TENANT ? (
                     <Link
@@ -120,7 +123,7 @@ export default function AppSidebar({
                     </Link>
                   ) : (
                     <Link href={ROUTES.DASHBOARD.ROOT}>
-                      <Logo className="h-5 cursor-pointer" />
+                      <Logo className="h-6 cursor-pointer" />
                     </Link>
                   )}
                 </>
@@ -145,11 +148,11 @@ export default function AppSidebar({
           </div>
 
           <SidebarSeparator className="mx-0 group-data-[collapsible=icon]:hidden" />
-          {!(isAdmin && !impersonatedUserId) && (
+          {!(isSuperAdmin && !impersonatedUserId) && (
             <div className="-mb-2 px-2 cursor-pointer">
               <SidebarPropertyDropdown
                 userType={accountType}
-                isAdmin={isAdmin}
+                isAdmin={isOrgAdmin && !isClient}
                 ownedProperties={ownedProperties}
                 sharedProperties={sharedProperties}
                 isCollapsed={isCollapsed}
@@ -159,7 +162,7 @@ export default function AppSidebar({
           )}
           {(accountType !== USER_TYPES.COMPANY ||
             pathname.includes("/property/")) &&
-            !(isAdmin && !impersonatedUserId) &&
+            !(isSuperAdmin && !impersonatedUserId) &&
             selectedProperty && (
             <>
               <div className="flex items-end justify-between px-4 group-data-[collapsible=icon]:hidden transition-opacity duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0">
@@ -271,7 +274,7 @@ export default function AppSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            {isAdmin === true ? (
+            {isSuperAdmin === true ? (
               <SuperadminUserChangeMenu
                 currentUserId={currentUserId}
                 impersonatedUserId={impersonatedUserId}

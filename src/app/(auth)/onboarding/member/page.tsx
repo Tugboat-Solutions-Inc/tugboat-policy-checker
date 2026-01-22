@@ -90,7 +90,7 @@ export default function OnboardingMemberPage() {
   return (
     <div>
       <Link href={ROUTES.HOME} aria-label="Tugboat Home">
-        <Logo className="h-6 mb-24" />
+        <Logo className="h-7 mb-24" />
       </Link>
 
       {currentOrg?.org_logo_url ? (

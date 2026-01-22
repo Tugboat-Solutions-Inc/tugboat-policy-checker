@@ -41,6 +41,13 @@ export const API_ENDPOINTS = {
       uploadId: string
     ) =>
       `${API_BASE_URL}/api/v1/properties/${propertyId}/units/${unitId}/collections/${collectionId}/uploads/${uploadId}`,
+    UPLOADS_RETRY: (
+      propertyId: string,
+      unitId: string,
+      collectionId: string,
+      uploadId: string
+    ) =>
+      `${API_BASE_URL}/api/v1/properties/${propertyId}/units/${unitId}/collections/${collectionId}/uploads/${uploadId}/retry`,
     COLLECTIONS_UPDATE: (
       propertyId: string,
       collectionId: string,

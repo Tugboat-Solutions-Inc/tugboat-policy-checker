@@ -67,14 +67,27 @@ export async function fetchKpiData(): Promise<KpiData> {
     0
   );
 
-  const sharedUnitsCount = shared.reduce(
+  const sharedFromOthersCount = shared.reduce(
     (sum, property) => sum + (property.units?.length ?? 0),
     0
   );
 
+  const sharedWithTenantsCount = owned.reduce((sum, property) => {
+    if (!property.units || !property.accesses) return sum;
+    
+    const unitIdsWithTenants = new Set<string>();
+    for (const access of property.accesses) {
+      if (access.is_client && access.unit_id) {
+        unitIdsWithTenants.add(access.unit_id);
+      }
+    }
+    
+    return sum + unitIdsWithTenants.size;
+  }, 0);
+
   return {
-    totalUnits: ownedUnitsCount + sharedUnitsCount,
-    sharedUnits: sharedUnitsCount,
+    totalUnits: ownedUnitsCount + sharedFromOthersCount,
+    sharedUnits: sharedWithTenantsCount,
   };
 }
 

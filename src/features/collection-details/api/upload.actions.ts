@@ -98,3 +98,29 @@ export async function getUploadsByUnitId(
     errorPrefix: "Failed to fetch uploads by unit",
   });
 }
+
+export async function retryUpload(
+  propertyId: string,
+  unitId: string,
+  collectionId: string,
+  uploadId: string
+): Promise<ActionResult<Upload>> {
+  const result = await fetchWithAuth<Upload>(
+    API_ENDPOINTS.PROPERTIES.UPLOADS_RETRY(
+      propertyId,
+      unitId,
+      collectionId,
+      uploadId
+    ),
+    {
+      method: "POST",
+      errorPrefix: "Failed to retry upload",
+    }
+  );
+
+  if (result.success) {
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+  }
+
+  return result;
+}

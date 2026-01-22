@@ -14,12 +14,6 @@ export function useLogout() {
   const resetPropertyForm = usePropertyFormStore((state) => state.reset);
 
   const logout = useCallback(async () => {
-    clearAuth();
-    clearImpersonation();
-    clearSelectedProperty();
-    clearSelectedCollection();
-    resetPropertyForm();
-    
     if (typeof window !== "undefined") {
       localStorage.removeItem("auth-storage");
       localStorage.removeItem("impersonation-storage");
@@ -27,6 +21,12 @@ export function useLogout() {
     }
 
     await serverLogout();
+
+    clearAuth();
+    clearImpersonation();
+    clearSelectedProperty();
+    clearSelectedCollection();
+    resetPropertyForm();
   }, [clearAuth, clearImpersonation, clearSelectedProperty, clearSelectedCollection, resetPropertyForm]);
 
   return logout;

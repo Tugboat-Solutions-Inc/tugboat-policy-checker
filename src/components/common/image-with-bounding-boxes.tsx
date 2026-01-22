@@ -128,13 +128,13 @@ export function ImageWithBoundingBoxes({
     const y2 = boundingBoxes[3];
 
     boundingBoxElement = makeBox({
-      color: "#22c55e",
-      zIndex: 10,
+          color: "#22c55e",
+        zIndex: 10,
       xMin: iw - x2,
       xMax: iw - x1,
       yMin: y1,
       yMax: y2,
-    });
+      });
   }
 
   return (

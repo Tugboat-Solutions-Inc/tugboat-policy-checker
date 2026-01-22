@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { PageTransition } from "@/components/common/page-transition";
 
 export default function AuthLayout({
   children,
@@ -17,7 +18,7 @@ export default function AuthLayout({
         className="max-w-96 mx-auto py-6 md:py-12 w-full flex flex-col overflow-hidden"
         aria-label="Authentication"
       >
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
       
       <motion.aside 

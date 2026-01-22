@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Image from "next/image";
-import { Pencil, CircleAlert, Check, X } from "lucide-react";
+import { Pencil, CircleAlert, X, RotateCcw, Loader2 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { StatusChip } from "@/components/ui/status-chip";
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -25,6 +25,7 @@ export interface CollectionListItemProps
   status?: UploadStatus;
   date?: string;
   onNotesEdit?: (value: string) => Promise<{ success: boolean }>;
+  onRetry?: () => Promise<void>;
   viewOnly?: boolean;
 }
 
@@ -41,6 +42,7 @@ export function CollectionListItem({
   status,
   date,
   onNotesEdit,
+  onRetry,
   viewOnly = false,
   ...props
 }: CollectionListItemProps) {
@@ -49,6 +51,7 @@ export function CollectionListItem({
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const originalNoteRef = useRef(notes ?? "");
 
@@ -116,7 +119,7 @@ export function CollectionListItem({
     }
   };
 
-  const handleRetry = () => {
+  const handleNotesRetry = () => {
     const value = inputRef.current?.value ?? note;
     handleSave(value);
   };
@@ -126,6 +129,28 @@ export function CollectionListItem({
     setSaveStatus("idle");
     setErrorMessage(null);
     setIsEditing(false);
+  };
+
+  const handleUploadRetry = async () => {
+    if (!onRetry || isRetrying) return;
+    setIsRetrying(true);
+    try {
+      await onRetry();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
+  const getStatusVariant = () => {
+    if (status === "COMPLETED") return "success";
+    if (status === "FAILED") return "danger";
+    return "warning";
+  };
+
+  const getStatusLabel = () => {
+    if (status === "COMPLETED") return "Completed";
+    if (status === "FAILED") return "Failed";
+    return "Processing";
   };
 
   return (
@@ -193,7 +218,7 @@ export function CollectionListItem({
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={handleRetry}
+                            onClick={handleNotesRetry}
                             className="text-xs text-destructive hover:underline"
                           >
                             Retry
@@ -250,49 +275,27 @@ export function CollectionListItem({
         )}
 
         <div className="flex items-center gap-5 shrink-0 ml-auto">
-          <div className="flex items-center gap-3">
-            {/* {completionPercentage !== undefined ? (
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4 shrink-0">
-                  <svg
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-full w-full"
-                  >
-                    <circle
-                      cx="8"
-                      cy="8"
-                      r="6"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-muted-foreground/20"
-                      fill="none"
-                    />
-                    <circle
-                      cx="8"
-                      cy="8"
-                      r="6"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-teal-600"
-                      fill="none"
-                      strokeDasharray={`${(completionPercentage / 100) * 37.7} 37.7`}
-                      strokeLinecap="round"
-                      transform="rotate(-90 8 8)"
-                    />
-                  </svg>
-                </div>
-                <p className="text-xs font-medium leading-none text-foreground">
-                  {completionPercentage}%
-                </p>
-              </div>
-            ) : null} */}
-            {status ? (
-              <StatusChip
-                variant={status === "COMPLETED" ? "success" : "warning"}
+          <div className="flex items-center gap-4">
+            {status === "FAILED" && onRetry && (
+              <button
+                type="button"
+                onClick={handleUploadRetry}
+                disabled={isRetrying}
+                className="flex items-center gap-1 px-1.5 py-1 rounded-md hover:bg-muted/50 transition-colors disabled:opacity-50"
               >
-                {status === "COMPLETED" ? "Completed" : "Processing"}
+                {isRetrying ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <RotateCcw className="h-3 w-3" />
+                )}
+                <span className="text-xs font-medium underline">
+                  {isRetrying ? "Retrying..." : "Retry"}
+                </span>
+              </button>
+            )}
+            {status ? (
+              <StatusChip variant={getStatusVariant()}>
+                {getStatusLabel()}
               </StatusChip>
             ) : null}
           </div>

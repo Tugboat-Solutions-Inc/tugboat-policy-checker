@@ -40,6 +40,7 @@ export default function AuthLoginForm() {
   
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const email = form.watch("email");
   const password = form.watch("password");
@@ -50,6 +51,8 @@ export default function AuthLoginForm() {
 
   async function onSubmitForm(data: LoginFormValues) {
     setError(null);
+    setIsLoading(true);
+    
     const formData = new FormData();
     formData.append("email", data.email);
     formData.append("password", data.password);
@@ -58,6 +61,7 @@ export default function AuthLoginForm() {
 
     if (result && !result.success) {
       setError("Incorrect email or password. Please try again");
+      setIsLoading(false);
     }
   }
 
@@ -73,7 +77,7 @@ export default function AuthLoginForm() {
       aria-label="Login form"
       noValidate
     >
-      <fieldset disabled={form.formState.isSubmitting}>
+      <fieldset disabled={isLoading}>
         <legend className="sr-only">Enter your login credentials</legend>
         
         <FieldGroup className="gap-3">
@@ -174,13 +178,13 @@ export default function AuthLoginForm() {
             disabled={
               !email ||
               !password ||
-              form.formState.isSubmitting ||
+              isLoading ||
               !!form.formState.errors.email
             }
             type="submit"
             aria-describedby={error ? errorId : undefined}
           >
-            {form.formState.isSubmitting ? (
+            {isLoading ? (
               <>
                 <Loader className="animate-spin size-4" aria-hidden="true" />
                 <span>Logging in…</span>

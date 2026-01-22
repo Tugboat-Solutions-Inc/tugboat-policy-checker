@@ -6,9 +6,9 @@ export default function Logo({
   return (
     <div {...props}>
       <Image
-        src="/images/logo-with-text.png"
+        src="/images/tugboat-logo-v.svg"
         alt="Tugboat Logo"
-        width={100}
+        width={101}
         height={24}
         className="h-full object-contain w-auto"
       />

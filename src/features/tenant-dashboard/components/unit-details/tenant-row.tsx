@@ -70,12 +70,19 @@ export function TenantRow({
           </div>
         )}
 
-        <span className="text-xs sm:text-sm font-medium text-foreground truncate">
-          {tenant.name}
-          {tenant.isCurrentUser && (
-            <span className="ml-1 text-gray-400 font-normal">(You)</span>
+        <div className="flex flex-col min-w-0">
+          <span className="text-xs sm:text-sm font-medium text-foreground truncate">
+            {tenant.name}
+            {tenant.isCurrentUser && (
+              <span className="ml-1 text-gray-400 font-normal">(You)</span>
+            )}
+          </span>
+          {tenant.email && (
+            <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
+              {tenant.email}
+            </span>
           )}
-        </span>
+        </div>
       </div>
 
       {isOwner ? (

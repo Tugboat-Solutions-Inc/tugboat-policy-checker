@@ -26,6 +26,7 @@ import {
   createUpload,
   updateUpload,
   getUploads,
+  retryUpload,
 } from "@/features/collection-details/api/upload.actions";
 import { startDeduplication } from "@/features/collection-details/api/collection.actions";
 import { getVideos } from "@/features/collection-details/api/video.actions";
@@ -76,6 +77,37 @@ export function DashboardLastUploadsSection({
           setExistingVideosCount(result.data.length);
         }
       }
+    }
+  };
+
+  const handleRetryUpload = async (upload: Upload) => {
+    const unitId = getFirstUnitId(property);
+    if (!unitId) {
+      toast.error("No unit found for this property");
+      return;
+    }
+
+    const collectionId = upload.collection_data?.id;
+    if (!collectionId) {
+      toast.error("Could not find collection for this upload");
+      return;
+    }
+
+    const loadingToast = toast.loading("Retrying upload", "Please wait...");
+
+    const result = await retryUpload(
+      property.id,
+      unitId,
+      collectionId,
+      upload.id
+    );
+
+    toast.dismiss(loadingToast);
+
+    if (result.success) {
+      toast.success("Upload retry started", "Processing will begin shortly.");
+    } else {
+      toast.error("Failed to retry upload", result.message || "Please try again.");
     }
   };
 
@@ -367,6 +399,7 @@ export function DashboardLastUploadsSection({
               itemCount={upload.items_count ?? 0}
               notes={upload.notes}
               onNotesEdit={(value) => handleNotesChange(upload.id, value)}
+              onRetry={upload.upload_status === "FAILED" ? () => handleRetryUpload(upload) : undefined}
               completionPercentage={67}
               status={upload.upload_status as UploadStatus}
               date={upload.created_at}
