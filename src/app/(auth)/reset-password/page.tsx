@@ -3,23 +3,31 @@ import { AuthIntroSection } from "@/features/auth/components/auth-intro-section"
 import AuthResetPasswordForm from "@/features/auth/components/auth-reset-password-form";
 
 function ResetPasswordFormWrapper() {
-  return (
-    <div className="space-y-8">
-      <AuthResetPasswordForm />
-    </div>
-  );
+  return <AuthResetPasswordForm />;
 }
 
 export default function ResetPasswordPage() {
   return (
-    <div className="space-y-10">
-      <AuthIntroSection
-        title="Reset Your Password"
-        description="Create a new password to secure your account."
-      />
-      <Suspense fallback={<div className="space-y-8">Loading...</div>}>
-        <ResetPasswordFormWrapper />
-      </Suspense>
-    </div>
+    <article aria-labelledby="reset-password-heading">
+      <header>
+        <AuthIntroSection
+          title="Reset Your Password"
+          description="Create a new password to secure your account."
+          headingId="reset-password-heading"
+        />
+      </header>
+      
+      <section className="mt-10" aria-label="Create new password">
+        <Suspense 
+          fallback={
+            <div className="space-y-8" role="status" aria-label="Loading form">
+              <span className="sr-only">Loading password reset form...</span>
+            </div>
+          }
+        >
+          <ResetPasswordFormWrapper />
+        </Suspense>
+      </section>
+    </article>
   );
 }

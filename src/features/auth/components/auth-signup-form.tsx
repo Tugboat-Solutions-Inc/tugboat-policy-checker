@@ -3,9 +3,9 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import TextLink from "@/components/common/text-link";
-import React, { useState } from "react";
+import React, { useState, useId } from "react";
 import { signup } from "@/features/auth/api/auth.actions";
-import { checkPasswordStrength, isEmailValid } from "@/lib/utils";
+import { checkPasswordStrength } from "@/lib/utils";
 import PasswordValidation from "@/components/common/password-validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
@@ -16,10 +16,12 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { CircleAlert, Loader, Eye, EyeOff } from "lucide-react";
+import { CircleAlert, Loader } from "lucide-react";
 import { ROUTES } from "@/config/routes";
 import { PasswordToggleButton } from "@/components/common/password-toggle-button";
-type signupFormValues = {
+import { AnimatePresence } from "framer-motion";
+
+type SignupFormValues = {
   email: string;
   password: string;
 };
@@ -30,7 +32,12 @@ interface AuthSignupFormProps {
 }
 
 export default function AuthSignupForm({ inviteToken, inviteEmail }: AuthSignupFormProps) {
-  const form = useForm<signupFormValues>({
+  const formId = useId();
+  const errorId = useId();
+  const emailErrorId = useId();
+  const passwordHintId = useId();
+
+  const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     mode: "onChange",
     defaultValues: {
@@ -46,7 +53,7 @@ export default function AuthSignupForm({ inviteToken, inviteEmail }: AuthSignupF
   const email = form.watch("email");
   const password = form.watch("password");
 
-  async function onSubmitForm(data: signupFormValues) {
+  async function onSubmitForm(data: SignupFormValues) {
     setSignUpError(null);
     try {
       const formData = new FormData();
@@ -58,122 +65,151 @@ export default function AuthSignupForm({ inviteToken, inviteEmail }: AuthSignupF
 
       const result = await signup(null, formData);
       
-      // If there's an error response (not a redirect), show it
       if (result && !result.success) {
         setSignUpError(result.message || "Unable to create account. Please try again.");
       }
-      // If no error, the action will redirect to success page
     } catch (error) {
-      // This catches the redirect or other unexpected errors
-      // Redirects throw in Next.js server actions, which is expected
       if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
-        // This is expected - let the redirect happen
         throw error;
       }
       setSignUpError("Unable to create account. Please try again.");
     }
   }
 
+  const emailError = form.formState.errors.email;
+  const hasEmailError = !!emailError && !!email;
+  const showPasswordHints = isPasswordFocused || !!password;
+
   return (
-    <form onSubmit={form.handleSubmit(onSubmitForm)} className="w-full">
-      <FieldGroup className="gap-3">
-        <Controller
-          name="email"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field className="gap-2">
-              <FieldLabel htmlFor="email" className="gap-1">
-                Email{" "}
-                {email && fieldState.error && (
-                  <CircleAlert size={12} className="text-destructive" />
-                )}
-              </FieldLabel>
-              <Input
-                {...field}
-                type="email"
-                placeholder="Enter your email address"
-                className="w-full h-12"
-                id="email"
-                name="email"
-                required
-                disabled={!!inviteEmail}
-              />
-              {email && fieldState.error && (
-                <FieldError>{fieldState.error.message}</FieldError>
-              )}
-            </Field>
-          )}
-        />
-        {signUpError && (
-          <p className="text-sm text-destructive mt-2">{signUpError}</p>
-        )}
-
-        <Controller
-          name="password"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field className="gap-2">
-              <FieldLabel htmlFor="password" className="gap-1">
-                Password
-              </FieldLabel>
-
-              <div className="relative">
+    <form 
+      onSubmit={form.handleSubmit(onSubmitForm)} 
+      className="w-full"
+      aria-label="Create account form"
+      noValidate
+    >
+      <fieldset disabled={form.formState.isSubmitting}>
+        <legend className="sr-only">Enter your account details</legend>
+        
+        <FieldGroup className="gap-3">
+          <Controller
+            name="email"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field className="gap-2">
+                <FieldLabel htmlFor={`${formId}-email`} className="gap-1">
+                  Email
+                  {hasEmailError && (
+                    <CircleAlert 
+                      size={12} 
+                      className="text-destructive" 
+                      aria-hidden="true"
+                    />
+                  )}
+                </FieldLabel>
                 <Input
                   {...field}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  className="w-full h-12 pr-10"
-                  id="password"
-                  name="password"
-                  onFocus={(e) => {
-                    setIsPasswordFocused(true);
-                  }}
-                  onBlur={(e) => {
-                    setIsPasswordFocused(false);
-                    field.onBlur();
-                  }}
-                  required
+                  type="email"
+                  placeholder="Enter your email address"
+                  className="w-full h-12"
+                  id={`${formId}-email`}
+                  autoComplete="email"
+                  disabled={!!inviteEmail}
+                  aria-invalid={hasEmailError}
+                  aria-describedby={fieldState.error ? emailErrorId : undefined}
                 />
-
-                <PasswordToggleButton
-                  isVisible={showPassword}
-                  onToggle={() => setShowPassword((p) => !p)}
-                />
-              </div>
-            </Field>
+                {email && fieldState.error && (
+                  <FieldError id={emailErrorId} role="alert">
+                    {fieldState.error.message}
+                  </FieldError>
+                )}
+              </Field>
+            )}
+          />
+          
+          {signUpError && (
+            <p 
+              id={errorId}
+              className="text-sm text-destructive" 
+              role="alert"
+              aria-live="polite"
+            >
+              {signUpError}
+            </p>
           )}
-        />
 
-        {(isPasswordFocused || !!password) && (
-          <PasswordValidation password={password} />
-        )}
+          <Controller
+            name="password"
+            control={form.control}
+            render={({ field }) => (
+              <Field className="gap-2">
+                <FieldLabel htmlFor={`${formId}-password`}>
+                  Password
+                </FieldLabel>
 
-        <Button
-          variant="default"
-          size="lg"
-          className="w-full mt-3 h-12"
-          disabled={
-            !email ||
-            !password ||
-            form.formState.isSubmitting ||
-            !checkPasswordStrength(password) ||
-            !!form.formState.errors.email
-          }
-          type="submit"
-        >
-          {form.formState.isSubmitting ? (
-            <>
-              <Loader className="animate-spin size-4" />
-              Sign Up
-            </>
-          ) : (
-            "Sign Up"
-          )}
-        </Button>
-        <div className="text-center">
-          <TextLink label="Have an account? Log in" href={ROUTES.AUTH.LOGIN} />
-        </div>
-      </FieldGroup>
+                <div className="relative">
+                  <Input
+                    {...field}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    className="w-full h-12 pr-10"
+                    id={`${formId}-password`}
+                    autoComplete="new-password"
+                    onFocus={() => setIsPasswordFocused(true)}
+                    onBlur={() => {
+                      setIsPasswordFocused(false);
+                      field.onBlur();
+                    }}
+                    aria-describedby={showPasswordHints ? passwordHintId : undefined}
+                  />
+
+                  <PasswordToggleButton
+                    isVisible={showPassword}
+                    onToggle={() => setShowPassword((p) => !p)}
+                  />
+                </div>
+              </Field>
+            )}
+          />
+
+          <AnimatePresence>
+            {showPasswordHints && (
+              <PasswordValidation 
+                password={password} 
+                id={passwordHintId}
+              />
+            )}
+          </AnimatePresence>
+
+          <Button
+            variant="default"
+            size="lg"
+            className="w-full mt-3 h-12"
+            disabled={
+              !email ||
+              !password ||
+              form.formState.isSubmitting ||
+              !checkPasswordStrength(password) ||
+              !!form.formState.errors.email
+            }
+            type="submit"
+            aria-describedby={signUpError ? errorId : undefined}
+          >
+            {form.formState.isSubmitting ? (
+              <>
+                <Loader className="animate-spin size-4" aria-hidden="true" />
+                <span>Creating account…</span>
+                <span className="sr-only">Please wait</span>
+              </>
+            ) : (
+              "Sign Up"
+            )}
+          </Button>
+          
+          <nav className="text-center" aria-label="Account navigation">
+            <TextLink label="Have an account? Log in" href={ROUTES.AUTH.LOGIN} />
+          </nav>
+        </FieldGroup>
+      </fieldset>
     </form>
   );
 }

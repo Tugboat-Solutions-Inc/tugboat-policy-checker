@@ -23,16 +23,20 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   }
 
   return (
-    <div className="space-y-10">
-      {invite ? (
-        <InviteIntroSection invite={invite} />
-      ) : (
-        <AuthIntroSection
-          title="Get Started"
-          description="Create your Tugboat account"
-        />
-      )}
-      <div className="space-y-8">
+    <article aria-labelledby="signup-heading">
+      <header>
+        {invite ? (
+          <InviteIntroSection invite={invite} headingId="signup-heading" />
+        ) : (
+          <AuthIntroSection
+            title="Get Started"
+            description="Create your Tugboat account"
+            headingId="signup-heading"
+          />
+        )}
+      </header>
+      
+      <section className="mt-10 space-y-8" aria-label="Sign up options">
         {!invite && (
           <>
             <AuthSocialLoginSection inviteToken={invite_token} />
@@ -43,7 +47,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           inviteToken={invite_token}
           inviteEmail={invite?.email}
         />
-      </div>
-    </div>
+      </section>
+    </article>
   );
 }
