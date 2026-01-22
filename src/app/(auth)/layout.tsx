@@ -3,6 +3,9 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { PageTransition } from "@/components/common/page-transition";
+import Logo from "@/components/common/logo";
+import { NavLink } from "@/components/common/nav-link";
+import { ROUTES } from "@/config/routes";
 
 export default function AuthLayout({
   children,
@@ -18,6 +21,14 @@ export default function AuthLayout({
         className="max-w-96 mx-auto py-6 md:py-12 w-full flex flex-col overflow-hidden"
         aria-label="Authentication"
       >
+        <NavLink 
+          href={ROUTES.HOME} 
+          aria-label="Go to Tugboat homepage"
+          className="inline-block mb-24 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm w-fit"
+        >
+          <Logo className="h-7" aria-hidden="true" />
+          <span className="sr-only">Tugboat</span>
+        </NavLink>
         <PageTransition>{children}</PageTransition>
       </main>
       

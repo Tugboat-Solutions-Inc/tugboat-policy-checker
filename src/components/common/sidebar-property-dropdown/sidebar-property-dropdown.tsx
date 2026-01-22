@@ -10,7 +10,7 @@ import { useState, useRef, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { USER_TYPES } from "@/constants/user-types";
 import { HomeIcon } from "../../icons";
-import Link from "next/link";
+import { NavLink } from "@/components/common/nav-link";
 import { ROUTES } from "@/config/routes";
 import { useSelectedProperty } from "@/hooks/use-properties";
 import { SidebarPropertyDropdownProps } from "./sidebar-property-dropdown.types";
@@ -115,7 +115,7 @@ export function SidebarPropertyDropdown({
   const isHomeActive = pathname === ROUTES.DASHBOARD.ROOT;
   const showExpandedHome = !isOnPropertyPage && !isCollapsed;
   const companyHomeIcon = isCompany && (
-    <Link
+    <NavLink
       href={ROUTES.DASHBOARD.ROOT}
       className={cn(
         "flex items-center rounded-md p-2 transition-colors",
@@ -128,7 +128,7 @@ export function SidebarPropertyDropdown({
     >
       <HomeIcon isActive={isHomeActive} className="h-4 w-4" />
       {showExpandedHome && <span className="text-sm font-medium">Home</span>}
-    </Link>
+    </NavLink>
   );
 
   if (!showDropdown) {

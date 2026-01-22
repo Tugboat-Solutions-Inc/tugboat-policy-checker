@@ -25,7 +25,7 @@ export interface TugboatMultiStepModalProps
     "title" | "description" | "children" | "footer" | "headerRight"
   > {
   steps: MultiStepConfig[];
-  onComplete?: () => void | Promise<void>;
+  onComplete?: () => void | Promise<void> | boolean | Promise<boolean>;
   onCancel?: () => void;
   showStepIndicator?: boolean;
   cancelText?: string;
@@ -65,9 +65,12 @@ export function TugboatMultiStepModal({
       }
 
       if (isLastStep) {
-        // Complete the form
-        await onComplete?.();
-        setCurrentStepIndex(0); // Reset for next time
+        // Complete the form - check if onComplete returns false to indicate failure
+        const result = await onComplete?.();
+        // Only reset if onComplete succeeded (returned true or void/undefined)
+        if (result !== false) {
+          setCurrentStepIndex(0); // Reset for next time
+        }
       } else {
         // Move to next step
         setCurrentStepIndex((prev) => prev + 1);

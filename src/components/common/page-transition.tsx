@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const pageVariants = {
   initial: {
     opacity: 0,
-    y: 4,
+    y: 8,
   },
   animate: {
     opacity: 1,
@@ -17,7 +17,7 @@ const pageVariants = {
 const pageTransition = {
   type: "tween" as const,
   ease: [0.16, 1, 0.3, 1] as const,
-  duration: 0.2,
+  duration: 0.32,
 };
 
 interface PageTransitionProps {

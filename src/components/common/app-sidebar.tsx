@@ -18,8 +18,8 @@ import {
   DashboardIcon,
   ChevronsLeftIcon,
 } from "@/components/icons";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NavLink } from "@/components/common/nav-link";
 import Logo from "@/components/common/logo";
 import { StatusChip } from "@/components/ui/status-chip";
 import { Button } from "@/components/ui/button";
@@ -95,7 +95,7 @@ export default function AppSidebar({
               {!isSuperAdmin ? (
                 <>
                   {accountType === USER_TYPES.MULTI_TENANT ? (
-                    <Link
+                    <NavLink
                       href={ROUTES.DASHBOARD.ROOT}
                       className="flex items-center gap-2 cursor-pointer"
                     >
@@ -120,21 +120,21 @@ export default function AppSidebar({
                           Powered by Tugboat
                         </p>
                       </div>
-                    </Link>
+                    </NavLink>
                   ) : (
-                    <Link href={ROUTES.DASHBOARD.ROOT}>
+                    <NavLink href={ROUTES.DASHBOARD.ROOT}>
                       <Logo className="h-6 cursor-pointer" />
-                    </Link>
+                    </NavLink>
                   )}
                 </>
               ) : (
-                <Link
+                <NavLink
                   href={ROUTES.DASHBOARD.ROOT}
                   className="flex items-center flex-row gap-1.5 cursor-pointer"
                 >
                   <LogoNoText className="h-5" />
                   <h2 className="font-semibold text-[15.5px]">Tugboat Super</h2>
-                </Link>
+                </NavLink>
               )}
             </div>
             <Button
@@ -192,7 +192,7 @@ export default function AppSidebar({
                     className="px-2.5 py-2 transition-all duration-200 ease-in-out"
                     isActive={pathname.includes("/details")}
                   >
-                    <Link
+                    <NavLink
                       href={ROUTES.DASHBOARD.PROPERTY_DETAILS(selectedProperty.id)}
                     >
                       <MenuIcon
@@ -202,7 +202,7 @@ export default function AppSidebar({
                       <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
                         Property Details
                       </span>
-                    </Link>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -230,7 +230,7 @@ export default function AppSidebar({
                   }
                   className="px-2.5 py-2 transition-all duration-200 ease-in-out"
                 >
-                  <Link
+                  <NavLink
                     href={
                       selectedProperty
                         ? ROUTES.DASHBOARD.PROPERTY(selectedProperty.id)
@@ -246,7 +246,7 @@ export default function AppSidebar({
                     <span className="text-sm font-medium whitespace-nowrap">
                       Dashboard
                     </span>
-                  </Link>
+                  </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -262,7 +262,7 @@ export default function AppSidebar({
               asChild
               className="px-2.5 py-2 transition-all duration-200 ease-in-out"
             >
-              <Link href={ROUTES.DASHBOARD.SETTINGS}>
+              <NavLink href={ROUTES.DASHBOARD.SETTINGS}>
                 <GearIcon
                   isActive={pathname === ROUTES.DASHBOARD.SETTINGS}
                   className="shrink-0"
@@ -270,7 +270,7 @@ export default function AppSidebar({
                 <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
                   Settings
                 </span>
-              </Link>
+              </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

@@ -4,9 +4,7 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import Link from "next/link";
 import { ROUTES } from "@/config/routes";
-import Logo from "@/components/common/logo";
 import { GalleryVerticalEnd, ChevronRight, Loader } from "lucide-react";
 import { env } from "@/lib/env";
 import { Button } from "@/components/ui/button";
@@ -89,10 +87,6 @@ export default function OnboardingMemberPage() {
 
   return (
     <div>
-      <Link href={ROUTES.HOME} aria-label="Tugboat Home">
-        <Logo className="h-7 mb-24" />
-      </Link>
-
       {currentOrg?.org_logo_url ? (
         <div className="size-[52px] rounded-[13px] mb-5 overflow-hidden">
           <img

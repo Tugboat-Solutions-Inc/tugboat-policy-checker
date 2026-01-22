@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { NavLink } from "@/components/common/nav-link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,9 +25,9 @@ export function InviteErrorPage({
 }: InviteErrorPageProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
-      <Link href={ROUTES.HOME} className="mb-8" aria-label="Tugboat Home">
+      <NavLink href={ROUTES.HOME} className="mb-8" aria-label="Tugboat Home">
         <Logo className="h-8" />
-      </Link>
+      </NavLink>
 
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
@@ -46,16 +46,16 @@ export function InviteErrorPage({
         </CardContent>
 
         <CardFooter className="flex flex-col gap-3">
-          <Link href={ROUTES.DASHBOARD.ROOT} className="w-full">
+          <NavLink href={ROUTES.DASHBOARD.ROOT} className="w-full">
             <Button className="w-full" size="lg">
               Go to Dashboard
             </Button>
-          </Link>
-          <Link href={ROUTES.AUTH.LOGIN} className="w-full">
+          </NavLink>
+          <NavLink href={ROUTES.AUTH.LOGIN} className="w-full">
             <Button className="w-full" variant="outline" size="lg">
               Sign In
             </Button>
-          </Link>
+          </NavLink>
         </CardFooter>
       </Card>
     </div>

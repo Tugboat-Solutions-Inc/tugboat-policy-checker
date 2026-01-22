@@ -3,7 +3,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CollectionListItem } from "@/components/common/collection-list-item/collection-list-item";
 import EmptyState from "@/components/common/empty-state";
-import Link from "next/link";
+import { NavLink } from "@/components/common/nav-link";
 import { ROUTES } from "@/config/routes";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -199,24 +199,24 @@ export function DashboardLastUploadsSection({
     }
   };
 
-  const handleCrateUpload = async () => {
+  const handleCrateUpload = async (): Promise<boolean> => {
     try {
       if (!selectedCollection?.id) {
         toast.error("Please select a collection");
-        return;
+        return false;
       }
 
       const collectionExists = collections.some(c => c.id === selectedCollection.id);
       if (!collectionExists) {
         toast.error("Collection no longer exists", "Please select a different collection");
         setSelectedCollection(null);
-        return;
+        return false;
       }
 
       const unitId = getFirstUnitId(property);
       if (!unitId) {
         toast.error("No unit found for this property");
-        return;
+        return false;
       }
 
       const validation = createUploadSchema.safeParse({
@@ -231,7 +231,7 @@ export function DashboardLastUploadsSection({
         const errorMessage =
           validation.error.issues[0]?.message || "Validation failed";
         toast.error(errorMessage);
-        return;
+        return false;
       }
 
       const photosBase64 = await Promise.all(
@@ -263,16 +263,18 @@ export function DashboardLastUploadsSection({
 
       if (!response.success) {
         toast.error("Failed to create upload", response.message || `Could not upload photos to ${selectedCollection.name}`);
-        return;
+        return false;
       }
 
       startDeduplication(property.id, unitId, selectedCollection.id);
 
       toast.success(`Photos uploaded to ${selectedCollection.name}!`, `We're now detecting items. This may take a moment.`);
+      return true;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to create upload";
       toast.error(errorMessage);
+      return false;
     }
   };
 
@@ -298,7 +300,7 @@ export function DashboardLastUploadsSection({
         <h2 className=" text-lg font-medium">Last Uploads</h2>
         <div className="gap-3 flex flex-row items-center">
           {property.id && (
-            <Link
+            <NavLink
               href={ROUTES.DASHBOARD.ALL_UPLOADS(property.id)}
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
@@ -306,7 +308,7 @@ export function DashboardLastUploadsSection({
               )}
             >
               View All
-            </Link>
+            </NavLink>
           )}
           {can(CAPABILITIES.UPLOAD_MEDIA) && (
             <Button
@@ -381,8 +383,11 @@ export function DashboardLastUploadsSection({
               },
             ]}
             onComplete={async () => {
-              await handleCrateUpload();
-              setIsMultiStepModalOpen(false);
+              const success = await handleCrateUpload();
+              if (success) {
+                setIsMultiStepModalOpen(false);
+              }
+              return success;
             }}
             onCancel={() => setIsMultiStepModalOpen(false)}
           />

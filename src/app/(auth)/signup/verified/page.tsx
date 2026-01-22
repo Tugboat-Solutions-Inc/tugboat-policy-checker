@@ -1,6 +1,6 @@
 import { AuthIntroSection } from "@/features/auth/components/auth-intro-section";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { NavLink } from "@/components/common/nav-link";
 import { ROUTES } from "@/config/routes";
 import { createClient } from "@/utils/supabase/server";
 import { decodeAccessToken } from "@/lib/jwt";
@@ -51,7 +51,7 @@ export default async function SignupVerifiedPage() {
 
   if (isRetoolCreatedUser) {
     const webAppButton = (
-      <Link href={onboardingRoute} className="block">
+      <NavLink href={onboardingRoute} className="block">
         <Button
           variant={isMobileDevice ? "outline" : "default"}
           size="lg"
@@ -59,7 +59,7 @@ export default async function SignupVerifiedPage() {
         >
           Continue in web app
         </Button>
-      </Link>
+      </NavLink>
     );
 
     const mobileAppButton = (
@@ -104,11 +104,11 @@ export default async function SignupVerifiedPage() {
         title="Your account has been successfully verified!"
         description=""
       />
-      <Link href={onboardingRoute} className="block">
+      <NavLink href={onboardingRoute} className="block">
         <Button variant="default" size="lg" className="h-12 w-full">
           Continue to Onboarding
         </Button>
-      </Link>
+      </NavLink>
     </div>
   );
 }

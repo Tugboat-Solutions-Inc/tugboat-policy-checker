@@ -1,10 +1,7 @@
 "use client";
 
 import { ArrowLeft } from "lucide-react";
-import Logo from "@/components/common/logo";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ROUTES } from "@/config/routes";
 
 interface AuthIntroSectionProps {
   title: string;
@@ -25,15 +22,6 @@ export function AuthIntroSection({
 
   return (
     <hgroup>
-      <Link 
-        href={ROUTES.HOME} 
-        aria-label="Go to Tugboat homepage"
-        className="inline-block mb-24 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
-      >
-        <Logo className="h-7" aria-hidden="true" />
-        <span className="sr-only">Tugboat</span>
-      </Link>
-      
       {showBackIcon && (
         <button
           type="button"

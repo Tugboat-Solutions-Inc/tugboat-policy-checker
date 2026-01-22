@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { NavLink } from "@/components/common/nav-link";
 import {
   Card,
   CardContent,
@@ -11,9 +11,9 @@ import Logo from "@/components/common/logo";
 export function InviteLoadingPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
-      <Link href={ROUTES.HOME} className="mb-8" aria-label="Tugboat Home">
+      <NavLink href={ROUTES.HOME} className="mb-8" aria-label="Tugboat Home">
         <Logo className="h-8" />
-      </Link>
+      </NavLink>
 
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
