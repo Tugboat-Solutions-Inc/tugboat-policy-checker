@@ -6,6 +6,8 @@ import { CollectionDetailsSkeleton } from "@/features/collection-details/compone
 import { DuplicatesSection } from "@/features/collection-details/components/duplicates-section";
 import { getCachedCollectionById } from "@/lib/cached-fetchers";
 import { getItems } from "@/features/collection-details/api/item.actions";
+import { getBrands } from "@/features/collection-details/api/brand.actions";
+import { getCategories } from "@/features/collection-details/api/category.actions";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface CollectionPageProps {
@@ -69,12 +71,15 @@ async function CollectionItems({
   collectionId: string;
   unitId: string;
 }) {
-  const [collectionResult, itemsResult] = await Promise.all([
+  const [collectionResult, itemsResult, brandsResult, categoriesResult] =
+    await Promise.all([
     getCachedCollectionById(propertyId, collectionId, unitId),
     getItems(propertyId, unitId, collectionId, {
       limit: 10,
       page: 1,
     }),
+    getBrands(propertyId, unitId),
+    getCategories(propertyId, unitId),
   ]);
 
   if (!collectionResult.success) {
@@ -82,6 +87,8 @@ async function CollectionItems({
   }
 
   const itemsData = itemsResult.success ? itemsResult.data : null;
+  const brands = brandsResult.success ? brandsResult.data.data : [];
+  const categories = categoriesResult.success ? categoriesResult.data.data : [];
 
   return (
     <ItemsTable
@@ -90,6 +97,8 @@ async function CollectionItems({
       collectionId={collectionId}
       collectionName={collectionResult.data.name}
       initialItems={itemsData?.data ?? []}
+      initialBrands={brands}
+      initialCategories={categories}
       initialPagination={{
         currentPage: itemsData?.current_page ?? 1,
         pageSize: itemsData?.page_size ?? 10,

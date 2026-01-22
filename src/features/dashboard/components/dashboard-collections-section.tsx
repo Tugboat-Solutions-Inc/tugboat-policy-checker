@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LayoutGroup } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ export function DashboardCollectionsSection({
 }: DashboardCollectionsSectionProps) {
   const { can } = usePermissions();
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const propertyId = useSelectedPropertyId();
   const { setSelectedCollection } = useSelectedCollectionStore();
   const { favorites, setFavorite, initializeFavorites, clearPending } = useCollectionFavoritesStore();
@@ -57,6 +58,7 @@ export function DashboardCollectionsSection({
   const [debouncedFavorites, setDebouncedFavorites] = useState<Record<string, boolean>>({});
   const isInitialMount = useRef(true);
   const pendingReorderTimeout = useRef<NodeJS.Timeout | null>(null);
+  const prefetchedCollections = useRef<Set<string>>(new Set());
 
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
@@ -448,13 +450,40 @@ export function DashboardCollectionsSection({
                       const unitId = getFirstUnitId(property);
                       if (propertyId && unitId) {
                         setSelectedCollection(collection);
-                        router.push(
-                          ROUTES.DASHBOARD.COLLECTION(
+                        startTransition(() => {
+                          router.push(
+                            ROUTES.DASHBOARD.COLLECTION(
+                              propertyId,
+                              collection.id,
+                              unitId
+                            )
+                          );
+                        });
+                      }
+                    }}
+                    onMouseEnter={() => {
+                      const unitId = getFirstUnitId(property);
+                      if (propertyId && unitId) {
+                        const collectionKey = `${propertyId}-${collection.id}-${unitId}`;
+                        if (!prefetchedCollections.current.has(collectionKey)) {
+                          const href = ROUTES.DASHBOARD.COLLECTION(
                             propertyId,
                             collection.id,
                             unitId
-                          )
-                        );
+                          );
+
+                          if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+                            window.requestIdleCallback(() => {
+                              router.prefetch(href);
+                            });
+                          } else {
+                            setTimeout(() => {
+                              router.prefetch(href);
+                            }, 0);
+                          }
+
+                          prefetchedCollections.current.add(collectionKey);
+                        }
                       }
                     }}
                   />
