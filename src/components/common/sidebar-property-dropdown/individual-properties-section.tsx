@@ -9,6 +9,7 @@ interface IndividualPropertiesSectionProps {
   selectedPropertyId?: string;
   onPropertySelect: (property: Property) => void;
   onPropertyHover?: (property: Property) => void;
+  showUnitNames?: boolean;
 }
 
 export function IndividualPropertiesSection({
@@ -17,6 +18,7 @@ export function IndividualPropertiesSection({
   selectedPropertyId,
   onPropertySelect,
   onPropertyHover,
+  showUnitNames = false,
 }: IndividualPropertiesSectionProps) {
   return (
     <div>
@@ -38,6 +40,7 @@ export function IndividualPropertiesSection({
                 isSelected={selectedPropertyId === property.id}
                 onSelect={onPropertySelect}
                 onHover={onPropertyHover}
+                showUnitName={showUnitNames}
               />
             ))}
           </DropdownMenuGroup>
@@ -64,6 +67,7 @@ export function IndividualPropertiesSection({
                 isSelected={selectedPropertyId === property.id}
                 onSelect={onPropertySelect}
                 onHover={onPropertyHover}
+                showUnitName={showUnitNames}
               />
             ))}
           </DropdownMenuGroup>

@@ -6,40 +6,61 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ROUTES } from "@/config/routes";
 
+interface AuthIntroSectionProps {
+  title: string;
+  description: string;
+  showBackIcon?: boolean;
+  emailHint?: string | null;
+  headingId?: string;
+}
+
 export function AuthIntroSection({
   title,
   description,
   showBackIcon,
   emailHint,
-}: {
-  title: string;
-  description: string;
-  showBackIcon?: boolean;
-  emailHint?: string | null;
-}) {
+  headingId,
+}: AuthIntroSectionProps) {
   const router = useRouter();
 
   return (
-    <div>
-      <Link href={ROUTES.HOME} aria-label="Tugboat Home">
-        <Logo className="h-6 mb-24" />
+    <hgroup>
+      <Link 
+        href={ROUTES.HOME} 
+        aria-label="Go to Tugboat homepage"
+        className="inline-block mb-24 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+      >
+        <Logo className="h-7" aria-hidden="true" />
+        <span className="sr-only">Tugboat</span>
       </Link>
+      
       {showBackIcon && (
-        <ArrowLeft
-          className="size-5 mb-6 cursor-pointer hover:text-primary transition-all"
+        <button
+          type="button"
           onClick={() => router.back()}
-        />
+          className="flex items-center mb-6 p-1 -ml-1 rounded-md hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          aria-label="Go back to previous page"
+        >
+          <ArrowLeft className="size-5" aria-hidden="true" />
+        </button>
       )}
-      <h1 className="text-3xl font-bold mb-3">{title}</h1>
+      
+      <h1 
+        id={headingId}
+        className="text-3xl font-bold mb-3"
+      >
+        {title}
+      </h1>
+      
       <p className="text-base font-regular text-muted-foreground">
         {description}
         {emailHint && (
           <>
             <br />
-            <span className="text-foreground">{emailHint}</span>
+            <strong className="text-foreground font-normal">{emailHint}</strong>
           </>
         )}
       </p>
-    </div>
+    </hgroup>
   );
 }

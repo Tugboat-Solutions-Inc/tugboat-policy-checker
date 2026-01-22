@@ -101,8 +101,11 @@ function UserRowComponent({
 
   if (viewOnly) {
     const role = access.organization_user.role;
+    const isClient = access.is_client;
     if (role === "ADMIN") {
       roleLabel = "Owner";
+    } else if (!isClient) {
+      roleLabel = "Team Member";
     } else {
       roleLabel = access.access_type === "EDITOR" ? "Can Edit" : "Can View";
     }

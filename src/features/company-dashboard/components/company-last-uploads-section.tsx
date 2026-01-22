@@ -4,6 +4,9 @@ import { CollectionListItem } from "@/components/common/collection-list-item/col
 import EmptyState from "@/components/common/empty-state";
 import type { Property, Upload } from "@/features/auth/types/property.types";
 import type { UploadStatus } from "@/features/collection-details/types/upload.types";
+import { retryUpload } from "@/features/collection-details/api/upload.actions";
+import { toast } from "@/components/common/toast/toast";
+import { getFirstUnitId } from "@/lib/utils";
 
 interface CompanyLastUploadsSectionProps {
   properties: Property[];
@@ -12,6 +15,7 @@ interface CompanyLastUploadsSectionProps {
 type UploadWithProperty = Upload & {
   propertyName: string;
   propertyId: string;
+  unitId: string | null;
 };
 
 function getLastUploadsFromProperties(
@@ -21,11 +25,13 @@ function getLastUploadsFromProperties(
 
   for (const property of properties) {
     if (property.last_uploads && property.last_uploads.length > 0) {
+      const unitId = getFirstUnitId(property);
       for (const upload of property.last_uploads) {
         allUploads.push({
           ...upload,
           propertyName: property.name,
           propertyId: property.id,
+          unitId,
         });
       }
     }
@@ -47,6 +53,36 @@ export function CompanyLastUploadsSection({
     (property) => property.last_uploads && property.last_uploads.length > 0
   );
 
+  const handleRetryUpload = async (upload: UploadWithProperty) => {
+    if (!upload.unitId) {
+      toast.error("No unit found for this property");
+      return;
+    }
+
+    const collectionId = upload.collection_data?.id;
+    if (!collectionId) {
+      toast.error("Could not find collection for this upload");
+      return;
+    }
+
+    const loadingToast = toast.loading("Retrying upload", "Please wait...");
+
+    const result = await retryUpload(
+      upload.propertyId,
+      upload.unitId,
+      collectionId,
+      upload.id
+    );
+
+    toast.dismiss(loadingToast);
+
+    if (result.success) {
+      toast.success("Upload retry started", "Processing will begin shortly.");
+    } else {
+      toast.error("Failed to retry upload", result.message || "Please try again.");
+    }
+  };
+
   if (!hasAnyCollections) {
     return null;
   }
@@ -66,6 +102,7 @@ export function CompanyLastUploadsSection({
               photoCount={upload.photo_count ?? upload.photo_urls.length}
               itemCount={upload.items_count ?? 0}
               notes={upload.notes}
+              onRetry={upload.upload_status === "FAILED" ? () => handleRetryUpload(upload) : undefined}
               completionPercentage={67}
               status={upload.upload_status as UploadStatus}
               date={upload.created_at}

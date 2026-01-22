@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { updatePassword } from "@/features/auth/api/auth.actions";
 import { checkPasswordStrength } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
@@ -16,18 +16,23 @@ import {
   FieldLabel,
   FieldError,
 } from "@/components/ui/field";
-import { CircleAlert, EyeOff, Eye } from "lucide-react";
+import { CircleAlert, Loader } from "lucide-react";
 import { ROUTES } from "@/config/routes";
 import { useRouter } from "next/navigation";
 import { PasswordToggleButton } from "@/components/common/password-toggle-button";
 
-type resetPassFormValues = {
+type ResetPassFormValues = {
   password: string;
   confirmPassword: string;
 };
 
 export default function AuthResetPasswordForm() {
-  const form = useForm<resetPassFormValues>({
+  const formId = useId();
+  const errorId = useId();
+  const passwordHintId = useId();
+  const confirmErrorId = useId();
+  
+  const form = useForm<ResetPassFormValues>({
     resolver: zodResolver(updatePasswordSchema),
     mode: "onChange",
     defaultValues: {
@@ -43,8 +48,7 @@ export default function AuthResetPasswordForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showPasswordValidation, setShowPasswordValidation] =
-    useState<boolean>(false);
+  const [showPasswordValidation, setShowPasswordValidation] = useState<boolean>(false);
 
   const searchParams = useSearchParams();
   const tokenHash = searchParams.get("token");
@@ -69,14 +73,12 @@ export default function AuthResetPasswordForm() {
       return;
     }
 
-    // While typing password or before confirmPassword is done → show
     if (!isPasswordStrong || !confirmPassword || passwordsMismatch) {
       setShowPasswordValidation(true);
     }
 
-    // When password is strong, confirmPassword filled and matches → hide after 2s
     if (isPasswordStrong && confirmPassword) {
-      setShowPasswordValidation(true); // ensure it's visible first
+      setShowPasswordValidation(true);
       timeout = setTimeout(() => {
         setShowPasswordValidation(false);
       }, 2000);
@@ -87,7 +89,7 @@ export default function AuthResetPasswordForm() {
     };
   }, [password, confirmPassword, isPasswordStrong, passwordsMismatch]);
 
-  async function onSubmitForm(data: resetPassFormValues) {
+  async function onSubmitForm(data: ResetPassFormValues) {
     setError(null);
     setIsLoading(true);
 
@@ -114,98 +116,141 @@ export default function AuthResetPasswordForm() {
     }
   }
 
+  const hasConfirmError = passwordsMismatch || (!!error && !!confirmPassword);
+
   return (
-    <form onSubmit={form.handleSubmit(onSubmitForm)} className="w-full">
-      <FieldGroup className="gap-3">
-        <Controller
-          name="password"
-          control={form.control}
-          render={({ field }) => (
-            <Field className="gap-2">
-              <FieldLabel htmlFor="password" className="gap-1">
-                New Password
-              </FieldLabel>
+    <form 
+      onSubmit={form.handleSubmit(onSubmitForm)} 
+      className="w-full"
+      aria-label="Reset password form"
+      noValidate
+    >
+      <fieldset disabled={isLoading}>
+        <legend className="sr-only">Create your new password</legend>
+        
+        <FieldGroup className="gap-3">
+          <Controller
+            name="password"
+            control={form.control}
+            render={({ field }) => (
+              <Field className="gap-2">
+                <FieldLabel htmlFor={`${formId}-password`}>
+                  New Password
+                </FieldLabel>
 
-              <div className="relative">
-                <Input
-                  {...field}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  id="password"
-                  name="password"
-                  className="w-full h-12 pr-10"
-                  required
-                  onFocus={() => setShowPasswordValidation(true)}
-                />
+                <div className="relative">
+                  <Input
+                    {...field}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your new password"
+                    id={`${formId}-password`}
+                    autoComplete="new-password"
+                    className="w-full h-12 pr-10"
+                    onFocus={() => setShowPasswordValidation(true)}
+                    aria-describedby={showPasswordValidation ? passwordHintId : undefined}
+                  />
 
-                <PasswordToggleButton
-                  isVisible={showPassword}
-                  onToggle={() => setShowPassword((p) => !p)}
-                />
-              </div>
-            </Field>
-          )}
-        />
+                  <PasswordToggleButton
+                    isVisible={showPassword}
+                    onToggle={() => setShowPassword((p) => !p)}
+                  />
+                </div>
+              </Field>
+            )}
+          />
 
-        <Controller
-          name="confirmPassword"
-          control={form.control}
-          render={({ field }) => (
-            <Field className="gap-2">
-              <FieldLabel htmlFor="confirmPassword" className="gap-1">
-                Confirm New Password{" "}
-                {(passwordsMismatch || error) && confirmPassword && (
-                  <CircleAlert size={12} className="text-destructive" />
+          <Controller
+            name="confirmPassword"
+            control={form.control}
+            render={({ field }) => (
+              <Field className="gap-2">
+                <FieldLabel htmlFor={`${formId}-confirm-password`} className="gap-1">
+                  Confirm New Password
+                  {hasConfirmError && (
+                    <CircleAlert 
+                      size={12} 
+                      className="text-destructive" 
+                      aria-hidden="true"
+                    />
+                  )}
+                </FieldLabel>
+
+                <div className="relative">
+                  <Input
+                    {...field}
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your new password"
+                    id={`${formId}-confirm-password`}
+                    autoComplete="new-password"
+                    className="w-full h-12 pr-10"
+                    aria-invalid={hasConfirmError}
+                    aria-describedby={
+                      passwordsMismatch 
+                        ? confirmErrorId 
+                        : error 
+                          ? errorId 
+                          : undefined
+                    }
+                  />
+
+                  <PasswordToggleButton
+                    isVisible={showConfirmPassword}
+                    onToggle={() => setShowConfirmPassword((p) => !p)}
+                  />
+                </div>
+
+                {passwordsMismatch && (
+                  <FieldError id={confirmErrorId} role="alert">
+                    Passwords do not match.
+                  </FieldError>
                 )}
-              </FieldLabel>
 
-              <div className="relative">
-                <Input
-                  {...field}
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  className="w-full h-12 pr-10"
-                  required
-                />
+                {error && !passwordsMismatch && (
+                  <p 
+                    id={errorId}
+                    className="text-sm text-destructive mt-2" 
+                    role="alert"
+                    aria-live="polite"
+                  >
+                    {error}
+                  </p>
+                )}
+              </Field>
+            )}
+          />
 
-                <PasswordToggleButton
-                  isVisible={showConfirmPassword}
-                  onToggle={() => setShowConfirmPassword((p) => !p)}
-                />
-              </div>
-
-              {passwordsMismatch && (
-                <FieldError>Passwords do not match.</FieldError>
-              )}
-
-              {error && !passwordsMismatch && (
-                <p className="text-sm text-destructive mt-2">{error}</p>
-              )}
-            </Field>
+          {showPasswordValidation && (
+            <PasswordValidation 
+              password={password} 
+              id={passwordHintId}
+            />
           )}
-        />
 
-        {showPasswordValidation && <PasswordValidation password={password} />}
-
-        <Button
-          variant="default"
-          size="lg"
-          className="w-full mt-3 h-12"
-          disabled={
-            !password ||
-            !confirmPassword ||
-            !isPasswordStrong ||
-            passwordsMismatch ||
-            isLoading
-          }
-          loading={isLoading}
-          type="submit"
-        >
-          Reset Password
-        </Button>
-      </FieldGroup>
+          <Button
+            variant="default"
+            size="lg"
+            className="w-full mt-3 h-12"
+            disabled={
+              !password ||
+              !confirmPassword ||
+              !isPasswordStrong ||
+              passwordsMismatch ||
+              isLoading
+            }
+            type="submit"
+          >
+            {isLoading ? (
+              <>
+                <Loader className="animate-spin size-4" aria-hidden="true" />
+                <span>Resetting…</span>
+                <span className="sr-only">Please wait</span>
+              </>
+            ) : (
+              "Reset Password"
+            )}
+          </Button>
+        </FieldGroup>
+      </fieldset>
     </form>
   );
 }

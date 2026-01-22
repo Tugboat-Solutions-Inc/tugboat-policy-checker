@@ -32,6 +32,7 @@ type profileFormValues = {
 interface ProfileTabProps {
   user: User;
   accountType?: UserType;
+  canEditCompanyName?: boolean;
   onFormChange?: (isDirty: boolean) => void;
   onSubmit?: (data: profileFormValues) => void;
 }
@@ -39,6 +40,7 @@ interface ProfileTabProps {
 export function ProfileTab({
   user,
   accountType = USER_TYPES.INDIVIDUAL,
+  canEditCompanyName = false,
   onFormChange,
   onSubmit,
 }: ProfileTabProps) {
@@ -232,7 +234,7 @@ export function ProfileTab({
                 render={({ field, fieldState }) => (
                   <Field className="gap-2">
                     <FieldLabel htmlFor="company_name">
-                      Company name*
+                      Company name{canEditCompanyName && "*"}
                     </FieldLabel>
                     <Input
                       {...field}
@@ -242,12 +244,14 @@ export function ProfileTab({
                         "h-12 shadow-none bg-background",
                         accountType === USER_TYPES.MULTI_TENANT
                           ? "lg:max-w-1/2 w-full"
-                          : "w-full"
+                          : "w-full",
+                        !canEditCompanyName && "cursor-not-allowed opacity-60"
                       )}
                       id="company_name"
-                      required
+                      required={canEditCompanyName}
+                      disabled={!canEditCompanyName}
                     />
-                    {fieldState.error && (
+                    {fieldState.error && canEditCompanyName && (
                       <FieldError>{fieldState.error.message}</FieldError>
                     )}
                   </Field>

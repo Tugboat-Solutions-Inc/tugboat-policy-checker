@@ -43,12 +43,14 @@ export function SettingsTabs({
 
   const [activeTab, setActiveTab] = useState("profile");
   const [isFormDirty, setIsFormDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setCurrentUser(user);
   }, [user]);
 
   const handleProfileSubmit = async (data: ProfileFormData) => {
+    setIsSaving(true);
     const payload: UpdateUserInput & {
       profile_picture_b64?: string;
       remove_profile_picture?: boolean;
@@ -95,12 +97,16 @@ export function SettingsTabs({
       if (orgResult && !orgResult.success) {
         toast.error(orgResult.message || "Failed to update company name");
       } else {
+        if (shouldUpdateOrg && currentOrg?.org_id) {
+          useAuthStore.getState().updateOrgName(currentOrg.org_id, data.company_name);
+        }
         toast.success("Changes saved!");
         setIsFormDirty(false);
       }
     } else {
       toast.error(userResult.message || "Failed to save changes");
     }
+    setIsSaving(false);
   };
 
   const handleInviteSubmit = async (emails: string[]) => {
@@ -131,9 +137,10 @@ export function SettingsTabs({
               type="submit"
               form="profile-form"
               variant="default"
-              disabled={!isFormDirty}
+              disabled={!isFormDirty || isSaving}
+              loading={isSaving}
             >
-              Save Changes
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           )
         }
@@ -149,7 +156,7 @@ export function SettingsTabs({
           >
             Profile
           </TabsTrigger>
-          {accountType === USER_TYPES.COMPANY && (
+          {accountType === USER_TYPES.COMPANY && !currentOrg?.is_client && (
             <TabsTrigger
               className={cn(
                 "data-[state=active]:shadow-none data-[state=active]:border-b-foreground data-[state=active]:text-foreground",
@@ -176,6 +183,10 @@ export function SettingsTabs({
             <ProfileTab
               user={currentUser}
               accountType={accountType}
+              canEditCompanyName={
+                (currentOrg?.owner || currentOrg?.role === "ADMIN") &&
+                !currentOrg?.is_client
+              }
               onFormChange={setIsFormDirty}
               onSubmit={handleProfileSubmit}
             />

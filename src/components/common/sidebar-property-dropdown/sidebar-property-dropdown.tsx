@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { USER_TYPES } from "@/constants/user-types";
 import { HomeIcon } from "../../icons";
@@ -44,6 +44,23 @@ export function SidebarPropertyDropdown({
   const allProperties = isCompany
     ? [...ownedProperties, ...sharedProperties]
     : ownedProperties;
+
+  const isTenant = useMemo(() => {
+    return userType === USER_TYPES.MULTI_TENANT && !isAdmin;
+  }, [userType, isAdmin]);
+
+  const displayName = useMemo(() => {
+    if (!selectedProperty) return null;
+    
+    if (isTenant && selectedProperty.units && selectedProperty.units.length > 0) {
+      const unitName = selectedProperty.units[0]?.name;
+      if (unitName && unitName !== "Default" && unitName !== "Default Unit") {
+        return `${unitName} (${selectedProperty.name})`;
+      }
+    }
+    
+    return selectedProperty.name;
+  }, [selectedProperty, isTenant]);
   
   const hasNoProperties = ownedProperties.length === 0 && sharedProperties.length === 0;
 
@@ -152,7 +169,7 @@ export function SidebarPropertyDropdown({
                   "text-base font-semibold whitespace-nowrap truncate max-w-44",
                   !selectedProperty && hasNoProperties && "text-muted-foreground"
                 )}>
-                  {selectedProperty?.name || (hasNoProperties ? "No Properties" : "Select Property")}
+                  {displayName || (hasNoProperties ? "No Properties" : "Select Property")}
                 </span>
                 <ChevronDown
                   className={cn(
@@ -204,7 +221,18 @@ export function SidebarPropertyDropdown({
               />
             )}
 
-            {(userType === USER_TYPES.MULTI_TENANT || isCompany) && (
+            {userType === USER_TYPES.MULTI_TENANT && isTenant && (
+              <IndividualPropertiesSection
+                ownedProperties={[]}
+                sharedProperties={[...ownedProperties, ...sharedProperties]}
+                selectedPropertyId={selectedProperty?.id}
+                onPropertySelect={handlePropertySelect}
+                onPropertyHover={handlePropertyHover}
+                showUnitNames
+              />
+            )}
+
+            {((userType === USER_TYPES.MULTI_TENANT && !isTenant) || isCompany) && (
               <CompanyPropertiesSection
                 filteredProperties={filteredProperties}
                 selectedPropertyId={selectedProperty?.id}

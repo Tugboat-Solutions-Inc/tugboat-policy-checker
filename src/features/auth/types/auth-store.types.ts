@@ -5,6 +5,7 @@ export interface OrgMetadata {
   org_type: "INDIVIDUAL" | "MULTI_TENANT" | "COMPANY";
   owner: boolean;
   role: "ADMIN" | "MEMBER";
+  is_client: boolean;
 }
 
 export interface AuthMethod {

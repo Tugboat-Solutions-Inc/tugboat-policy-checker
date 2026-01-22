@@ -303,12 +303,12 @@ export function PropertyDetailsPage({
         });
         
         if (!unitResult.success) {
-          toast.error(
+        toast.error(
             "Failed to create unit",
             unitResult.message || "Please try again"
-          );
-          return;
-        }
+        );
+        return;
+      }
         unitId = unitResult.data.id;
         
         const refreshedProperty = await getPropertyById(currentProperty.id);

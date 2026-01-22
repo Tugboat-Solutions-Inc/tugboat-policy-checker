@@ -7,19 +7,29 @@ import { ROUTES } from "@/config/routes";
 
 export default function LoginPage() {
   return (
-    <div className="space-y-10">
-      <AuthIntroSection title="Log In" description="Log into your account" />
-      <div className="space-y-8">
+    <article aria-labelledby="login-heading">
+      <header>
+        <AuthIntroSection 
+          title="Log In" 
+          description="Log into your account"
+          headingId="login-heading"
+        />
+      </header>
+      
+      <section className="mt-10 space-y-8" aria-label="Login options">
         <AuthLoginForm />
+        
         <TextSeparator label="or" />
+        
         <AuthSocialLoginSection />
-        <div className="text-center">
+        
+        <nav className="text-center" aria-label="Account navigation">
           <TextLink
             label="Don't have an account yet? Sign up"
             href={ROUTES.AUTH.SIGNUP}
           />
-        </div>
-      </div>
-    </div>
+        </nav>
+      </section>
+    </article>
   );
 }

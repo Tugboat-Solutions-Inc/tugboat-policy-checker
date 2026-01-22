@@ -8,6 +8,7 @@ import Link from "next/link";
 import { ROUTES } from "@/config/routes";
 import Logo from "@/components/common/logo";
 import { GalleryVerticalEnd, ChevronRight, Loader } from "lucide-react";
+import { env } from "@/lib/env";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -89,12 +90,22 @@ export default function OnboardingMemberPage() {
   return (
     <div>
       <Link href={ROUTES.HOME} aria-label="Tugboat Home">
-        <Logo className="h-6 mb-24" />
+        <Logo className="h-7 mb-24" />
       </Link>
 
-      <div className="flex items-center justify-center size-[52px] bg-foreground rounded-[13px] mb-5">
-        <GalleryVerticalEnd className="size-[26px] text-background" />
-      </div>
+      {currentOrg?.org_logo_url ? (
+        <div className="size-[52px] rounded-[13px] mb-5 overflow-hidden">
+          <img
+            src={env.NEXT_PUBLIC_STORAGE_URL + currentOrg.org_logo_url}
+            alt={organizationName}
+            className="size-full object-cover"
+          />
+        </div>
+      ) : (
+        <div className="flex items-center justify-center size-[52px] bg-foreground rounded-[13px] mb-5">
+          <GalleryVerticalEnd className="size-[26px] text-background" />
+        </div>
+      )}
 
       <h1 className="text-3xl font-semibold mb-3">
         Welcome to {organizationName}

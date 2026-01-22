@@ -2,6 +2,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/common/app-sidebar";
 import { AuthStoreInitializer } from "@/components/common/auth-store-initializer";
 import { ImpersonationStoreInitializer } from "@/components/common/impersonation-store-initializer";
+import { PageTransition } from "@/components/common/page-transition";
 import type { GetPropertiesResponse } from "@/features/auth/types/property.types";
 import type { DecodedJWT } from "@/features/auth/types/auth-store.types";
 import type { AccountType } from "@/lib/auth";
@@ -46,7 +47,9 @@ export default async function DashboardLayout({
         currentUserId={currentUserId}
         impersonatedUserId={impersonatedUserId}
       />
-      <SidebarInset className="overflow-x-hidden">{children}</SidebarInset>
+      <SidebarInset className="overflow-x-hidden">
+        <PageTransition>{children}</PageTransition>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

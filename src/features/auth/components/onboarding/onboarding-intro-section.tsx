@@ -16,7 +16,7 @@ export function OnboardingIntroSection({
 }) {
   return (
     <div>
-      <Logo className="h-6 mb-24" />
+      <Logo className="h-7 mb-24" />
 
       {/* Step Indicator */}
       <div className="inline-flex items-center h-6 gap-2 rounded-[8px] bg-muted p-3 mb-10">
