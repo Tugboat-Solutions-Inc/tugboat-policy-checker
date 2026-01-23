@@ -43,11 +43,14 @@ export default async function SignupVerifiedPage({ searchParams }: SignupVerifie
   const userAgent = headersList.get("user-agent") || "";
   const isMobileDevice = detectMobileDevice(userAgent);
 
+  const isWebSignup = session?.user?.user_metadata?.source === "web";
+  
   const isRetoolCreatedUser = 
-    session?.user?.user_metadata?.source === "retool" || 
+    (session?.user?.user_metadata?.source === "retool" || 
     session?.user?.user_metadata?.retool === true || 
     params.retool === "true" ||
-    params.adminInvite === "true";
+    params.adminInvite === "true") &&
+    !isWebSignup;
 
   let onboardingRoute: string = ROUTES.AUTH.ONBOARDING;
 
