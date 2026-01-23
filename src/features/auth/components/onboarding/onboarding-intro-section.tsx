@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import Logo from "@/components/common/logo";
 
 export function OnboardingIntroSection({
   title,
@@ -16,8 +15,6 @@ export function OnboardingIntroSection({
 }) {
   return (
     <div>
-      <Logo className="h-7 mb-24" />
-
       {/* Step Indicator */}
       <div className="inline-flex items-center h-6 gap-2 rounded-[8px] bg-muted p-3 mb-10">
         {Array.from({ length: totalSteps }).map((_, i) => {
