@@ -43,11 +43,10 @@ export default async function SignupVerifiedPage({ searchParams }: SignupVerifie
   const userAgent = headersList.get("user-agent") || "";
   const isMobileDevice = detectMobileDevice(userAgent);
 
-  const isRetoolFlow = params.retool === "true";
   const isRetoolCreatedUser = 
-    session?.user?.user_metadata?.invited === true || 
-    params.adminInvite === "true" ||
-    isRetoolFlow;
+    session?.user?.user_metadata?.retool === true || 
+    params.retool === "true" ||
+    params.adminInvite === "true";
 
   let onboardingRoute: string = ROUTES.AUTH.ONBOARDING;
 
@@ -71,7 +70,7 @@ export default async function SignupVerifiedPage({ searchParams }: SignupVerifie
     return `${MOBILE_DEEP_LINK}?${params.toString()}`;
   };
 
-  if (isRetoolFlow || isRetoolCreatedUser) {
+  if (isRetoolCreatedUser) {
     const webAppButton = (
       <NavLink href={onboardingRoute} className="block">
         <Button
