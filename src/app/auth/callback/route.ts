@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import { ROUTES } from "@/config/routes";
+import { decodeAccessToken } from "@/lib/jwt";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -62,7 +63,15 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}${ROUTES.AUTH.RESET_PASSWORD}`);
   }
 
-  if (isSignupFlow) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const decodedToken = session?.access_token 
+    ? decodeAccessToken(session.access_token) 
+    : null;
+
+  if (!decodedToken?.onboarding_complete) {
     return NextResponse.redirect(`${origin}${ROUTES.AUTH.SIGNUP_VERIFIED}`);
   }
 

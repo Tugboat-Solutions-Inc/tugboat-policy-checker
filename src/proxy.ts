@@ -99,7 +99,15 @@ export async function proxy(request: NextRequest) {
   // Admin users skip onboarding entirely
   const isOnboardingPath = path.startsWith(ROUTES.AUTH.ONBOARDING);
   const isVerifiedPath = path.startsWith(ROUTES.AUTH.SIGNUP_VERIFIED);
+  const isCallbackPath = path.startsWith("/auth/callback");
   const isAdmin = decodedToken?.role === "ADMIN";
+  
+  console.log("=== PROXY DEBUG ===");
+  console.log("Path:", path);
+  console.log("isVerifiedPath:", isVerifiedPath);
+  console.log("isCallbackPath:", isCallbackPath);
+  console.log("user:", !!user);
+  console.log("onboarding_complete:", decodedToken?.onboarding_complete);
   
   if (
     user &&
@@ -107,8 +115,10 @@ export async function proxy(request: NextRequest) {
     decodedToken.onboarding_complete === false &&
     !isOnboardingPath &&
     !isVerifiedPath &&
+    !isCallbackPath &&
     !isAdmin
   ) {
+    console.log("REDIRECTING TO ONBOARDING from path:", path);
     const correctOnboardingRoute = getOnboardingRoute(decodedToken);
     return NextResponse.redirect(
       new URL(correctOnboardingRoute, request.nextUrl)
