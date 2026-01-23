@@ -18,23 +18,22 @@ export async function GET(request: Request) {
 
   const supabase = await createClient();
 
-  let isSignupFlow = false;
   let isRecoveryFlow = false;
+  let session = null;
 
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       console.log("Auth callback error (code exchange):", error.message);
       return NextResponse.redirect(
         `${origin}${ROUTES.AUTH.LOGIN}?error=auth_callback_failed`
       );
     }
-    isSignupFlow = !next;
-    console.log("Code exchange success. isSignupFlow:", isSignupFlow, "next:", next);
+    session = data.session;
     isRecoveryFlow = next === ROUTES.AUTH.RESET_PASSWORD;
   } else if (token_hash) {
     const otpType = type || (next === ROUTES.AUTH.RESET_PASSWORD ? "recovery" : "email");
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       token_hash,
       type: otpType as "signup" | "recovery" | "email",
     });
@@ -44,7 +43,7 @@ export async function GET(request: Request) {
         `${origin}${ROUTES.AUTH.LOGIN}?error=auth_callback_failed`
       );
     }
-    isSignupFlow = otpType === "signup" || otpType === "email";
+    session = data.session;
     isRecoveryFlow = otpType === "recovery" || next === ROUTES.AUTH.RESET_PASSWORD;
   } else {
     return NextResponse.redirect(
@@ -52,26 +51,21 @@ export async function GET(request: Request) {
     );
   }
 
-  console.log(
-    "Auth successful - isSignupFlow:",
-    isSignupFlow,
-    "isRecoveryFlow:",
-    isRecoveryFlow
-  );
-
   if (isRecoveryFlow || next === ROUTES.AUTH.RESET_PASSWORD) {
     return NextResponse.redirect(`${origin}${ROUTES.AUTH.RESET_PASSWORD}`);
   }
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
 
   const decodedToken = session?.access_token 
     ? decodeAccessToken(session.access_token) 
     : null;
 
+  console.log("=== CALLBACK DEBUG ===");
+  console.log("session exists:", !!session);
+  console.log("decodedToken:", !!decodedToken);
+  console.log("onboarding_complete:", decodedToken?.onboarding_complete);
+
   if (!decodedToken?.onboarding_complete) {
+    console.log("Redirecting to SIGNUP_VERIFIED");
     return NextResponse.redirect(`${origin}${ROUTES.AUTH.SIGNUP_VERIFIED}`);
   }
 
