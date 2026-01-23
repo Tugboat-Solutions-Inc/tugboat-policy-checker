@@ -41,6 +41,8 @@ interface ItemsTableProps {
   collectionId: string;
   collectionName: string;
   initialItems: Item[];
+  initialBrands?: Brand[];
+  initialCategories?: Category[];
   initialPagination: {
     currentPage: number;
     pageSize: number;
@@ -57,17 +59,26 @@ export function ItemsTable({
   collectionId,
   collectionName,
   initialItems,
+  initialBrands,
+  initialCategories,
   initialPagination,
 }: ItemsTableProps) {
   const { can } = usePermissions();
   const viewOnly = !can(CAPABILITIES.EDIT_COLLECTIONS);
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoadingBrandsCategories, setIsLoadingBrandsCategories] =
-    useState(true);
+  const hasInitialBrandsCategories =
+    initialBrands !== undefined && initialCategories !== undefined;
+  const [brands, setBrands] = useState<Brand[]>(() => initialBrands ?? []);
+  const [categories, setCategories] = useState<Category[]>(() => initialCategories ?? []);
+  const [isLoadingBrandsCategories, setIsLoadingBrandsCategories] = useState(
+    !hasInitialBrandsCategories
+  );
 
   useEffect(() => {
     prefetchTemplate();
+
+    if (hasInitialBrandsCategories) {
+      return;
+    }
 
     const loadBrandsAndCategories = async () => {
       setIsLoadingBrandsCategories(true);
@@ -91,7 +102,7 @@ export function ItemsTable({
     };
 
     loadBrandsAndCategories();
-  }, [propertyId, unitId]);
+  }, [propertyId, unitId, hasInitialBrandsCategories]);
 
   const {
     items,

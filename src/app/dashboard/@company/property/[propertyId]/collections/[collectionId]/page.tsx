@@ -6,6 +6,8 @@ import { CollectionDetailsSkeleton } from "@/features/collection-details/compone
 import { DuplicatesSection } from "@/features/collection-details/components/duplicates-section";
 import { getCachedPropertyById, getCachedCollectionById } from "@/lib/cached-fetchers";
 import { getItems } from "@/features/collection-details/api/item.actions";
+import { getBrands } from "@/features/collection-details/api/brand.actions";
+import { getCategories } from "@/features/collection-details/api/category.actions";
 import { getFirstUnitId } from "@/lib/utils";
 
 interface CollectionPageProps {
@@ -33,9 +35,13 @@ async function CollectionContent({
   const [
     collectionResult,
     itemsResult,
+    brandsResult,
+    categoriesResult,
   ] = await Promise.all([
     getCachedCollectionById(propertyId, collectionId, unitId),
     getItems(propertyId, unitId, collectionId, { limit: 10, page: 1 }),
+    getBrands(propertyId, unitId),
+    getCategories(propertyId, unitId),
   ]);
 
   if (!collectionResult.success) {
@@ -43,6 +49,8 @@ async function CollectionContent({
   }
 
   const itemsData = itemsResult.success ? itemsResult.data : null;
+  const brands = brandsResult.success ? brandsResult.data.data : [];
+  const categories = categoriesResult.success ? categoriesResult.data.data : [];
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -67,6 +75,8 @@ async function CollectionContent({
           collectionId={collectionId}
           collectionName={collectionResult.data.name}
           initialItems={itemsData?.data ?? []}
+          initialBrands={brands}
+          initialCategories={categories}
           initialPagination={{
             currentPage: itemsData?.current_page ?? 1,
             pageSize: itemsData?.page_size ?? 10,

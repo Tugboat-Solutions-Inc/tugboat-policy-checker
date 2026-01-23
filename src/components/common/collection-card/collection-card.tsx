@@ -48,6 +48,7 @@ export const CollectionCard = React.memo(function CollectionCard({
   onFavoriteToggle,
   duplicatesDetected,
   layoutId,
+  onMouseEnter: externalOnMouseEnter,
   ...props
 }: CollectionCardProps) {
   const [optimisticFavorite, setOptimisticFavorite] =
@@ -91,9 +92,10 @@ export const CollectionCard = React.memo(function CollectionCard({
     setIsHovered(false);
   }, [mouseX, mouseY]);
 
-  const handleMouseEnter = React.useCallback(() => {
+  const handleMouseEnter = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     setIsHovered(true);
-  }, []);
+    externalOnMouseEnter?.(e);
+  }, [externalOnMouseEnter]);
 
   const showPlaceholder = !image || hasImageError;
 

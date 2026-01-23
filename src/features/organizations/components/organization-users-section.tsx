@@ -128,9 +128,18 @@ export function OrganizationUsersSection({
   const teamMembers = users.filter((u) => !u.is_client);
   
   const sortedUsers = [...teamMembers].sort((a, b) => {
-    const aIsAdmin = a.role === "ADMIN" ? 0 : 1;
-    const bIsAdmin = b.role === "ADMIN" ? 0 : 1;
-    return aIsAdmin - bIsAdmin;
+    const getRolePriority = (role: string) => {
+      if (role === "ADMIN") return 0;
+      if (role === "MEMBER") return 1;
+      return 2;
+    };
+    
+    const priorityDiff = getRolePriority(a.role) - getRolePriority(b.role);
+    if (priorityDiff !== 0) return priorityDiff;
+    
+    const aName = `${a.user.first_name} ${a.user.last_name}`.toLowerCase();
+    const bName = `${b.user.first_name} ${b.user.last_name}`.toLowerCase();
+    return aName.localeCompare(bName);
   });
 
   return (

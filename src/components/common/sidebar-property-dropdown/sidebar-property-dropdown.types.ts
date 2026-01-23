@@ -8,5 +8,6 @@ export interface SidebarPropertyDropdownProps {
   sharedProperties?: Property[];
   isCollapsed?: boolean;
   onCollapsedClick?: () => void;
+  isCompanyClient?: boolean;
 }
 

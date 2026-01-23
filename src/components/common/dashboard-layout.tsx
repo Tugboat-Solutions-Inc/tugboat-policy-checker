@@ -14,6 +14,7 @@ interface DashboardLayoutProps {
   accountType: AccountType;
   properties: GetPropertiesResponse | null;
   decodedToken: DecodedJWT | null;
+  isCompanyClient?: boolean;
 }
 
 export default async function DashboardLayout({
@@ -21,6 +22,7 @@ export default async function DashboardLayout({
   accountType,
   properties,
   decodedToken,
+  isCompanyClient = false,
 }: DashboardLayoutProps) {
   const impersonatedUserId = await getImpersonatedUserId();
   const currentUserId = decodedToken?.sub || "";
@@ -46,6 +48,7 @@ export default async function DashboardLayout({
         sharedProperties={properties?.shared || []}
         currentUserId={currentUserId}
         impersonatedUserId={impersonatedUserId}
+        isCompanyClient={isCompanyClient}
       />
       <SidebarInset className="overflow-x-hidden">
         <PageTransition>{children}</PageTransition>
