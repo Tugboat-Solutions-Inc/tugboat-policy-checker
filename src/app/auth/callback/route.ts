@@ -14,6 +14,8 @@ export async function GET(request: Request) {
   const token_hash = searchParams.get("token_hash") || searchParams.get("token");
   const type = searchParams.get("type");
   const next = searchParams.get("next");
+  const adminInvite = searchParams.get("adminInvite") || searchParams.get("admin_invite");
+  const retool = searchParams.get("retool");
 
   console.log("Auth callback params:", { code, token_hash, type, next });
 
@@ -30,8 +32,8 @@ export async function GET(request: Request) {
         `${origin}${ROUTES.AUTH.LOGIN}?error=auth_callback_failed`
       );
     }
-    isSignupFlow = !next;
-    console.log("Code exchange success. isSignupFlow:", isSignupFlow, "next:", next);
+    isSignupFlow = !next || retool === "true";
+    console.log("Code exchange success. isSignupFlow:", isSignupFlow, "next:", next, "retool:", retool);
     isRecoveryFlow = next === ROUTES.AUTH.RESET_PASSWORD;
   } else if (token_hash) {
     const otpType = type || (next === ROUTES.AUTH.RESET_PASSWORD ? "recovery" : "email");
@@ -65,7 +67,18 @@ export async function GET(request: Request) {
   }
 
   if (isSignupFlow) {
-    return NextResponse.redirect(`${origin}${ROUTES.AUTH.SIGNUP_VERIFIED}`);
+    const verifiedParams = new URLSearchParams();
+    if (adminInvite) {
+      verifiedParams.set("adminInvite", "true");
+    }
+    if (retool === "true") {
+      verifiedParams.set("retool", "true");
+    }
+    
+    const verifiedUrl = verifiedParams.toString()
+      ? `${origin}${ROUTES.AUTH.SIGNUP_VERIFIED}?${verifiedParams.toString()}`
+      : `${origin}${ROUTES.AUTH.SIGNUP_VERIFIED}`;
+    return NextResponse.redirect(verifiedUrl);
   }
 
   return NextResponse.redirect(`${origin}${next || ROUTES.DASHBOARD.ROOT}`);

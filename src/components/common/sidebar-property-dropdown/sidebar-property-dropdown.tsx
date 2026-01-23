@@ -42,7 +42,7 @@ export function SidebarPropertyDropdown({
   const menuButtonRef = useRef<HTMLDivElement>(null);
 
   const isCompany = userType === USER_TYPES.COMPANY && !isCompanyClient;
-  const allProperties = isCompany
+  const allProperties = (isCompany || isCompanyClient)
     ? [...ownedProperties, ...sharedProperties]
     : ownedProperties;
 
@@ -212,7 +212,7 @@ export function SidebarPropertyDropdown({
           </div>
         ) : (
           <>
-            {userType === USER_TYPES.INDIVIDUAL && (
+            {userType === USER_TYPES.INDIVIDUAL && !isCompanyClient && (
               <IndividualPropertiesSection
                 ownedProperties={ownedProperties}
                 sharedProperties={sharedProperties}
@@ -233,7 +233,7 @@ export function SidebarPropertyDropdown({
               />
             )}
 
-            {((userType === USER_TYPES.MULTI_TENANT && !isTenant) || isCompany) && (
+            {((userType === USER_TYPES.MULTI_TENANT && !isTenant) || isCompany || isCompanyClient) && (
               <CompanyPropertiesSection
                 filteredProperties={filteredProperties}
                 selectedPropertyId={selectedProperty?.id}
