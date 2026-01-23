@@ -4,13 +4,18 @@ import { env } from "@/utils/env";
 import { ROUTES } from "@/config/routes";
 import { decodeAccessToken, type DecodedJWT } from "@/lib/jwt";
 
-const protectedRoutes = [ROUTES.DASHBOARD.ROOT, ROUTES.AUTH.ONBOARDING];
+const protectedRoutes = [
+  ROUTES.DASHBOARD.ROOT,
+  ROUTES.AUTH.ONBOARDING,
+];
+
 const authOnlyRoutes = [
   ROUTES.AUTH.LOGIN,
   ROUTES.AUTH.SIGNUP,
   ROUTES.AUTH.FORGOT_PASSWORD,
   ROUTES.AUTH.WELCOME,
 ];
+
 const publicRoutes = [
   ...authOnlyRoutes,
   ROUTES.AUTH.SIGNUP_SUCCESS,
@@ -51,12 +56,23 @@ export async function proxy(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some((route) =>
     path.startsWith(route)
   );
-  const isPublicRoute = publicRoutes.some((route) => path.startsWith(route));
-  const isAuthOnlyRoute = authOnlyRoutes.some((route) =>
-    path.startsWith(route) && 
-    !path.startsWith(ROUTES.AUTH.SIGNUP_VERIFIED) && 
-    !path.startsWith(ROUTES.AUTH.SIGNUP_SUCCESS)
+  const isPublicRoute = publicRoutes.some((route) =>
+    path.startsWith(route)
   );
+  const isAuthOnlyRoute = authOnlyRoutes.some((route) =>
+    path.startsWith(route)
+  );
+
+  const isSignupVerifiedPath = path.startsWith(
+    ROUTES.AUTH.SIGNUP_VERIFIED
+  );
+  const isSignupSuccessPath = path.startsWith(
+    ROUTES.AUTH.SIGNUP_SUCCESS
+  );
+  const isOnboardingPath = path.startsWith(
+    ROUTES.AUTH.ONBOARDING
+  );
+  const isCallbackPath = path.startsWith("/auth/callback");
 
   let response = NextResponse.next({ request });
 
@@ -93,21 +109,27 @@ export async function proxy(request: NextRequest) {
     ? decodeAccessToken(session.access_token)
     : null;
 
-  // Force users with incomplete onboarding to the correct onboarding page
-  // But allow them to see the verified page first
-  // Admin users skip onboarding entirely
-  const isOnboardingPath = path.startsWith(ROUTES.AUTH.ONBOARDING);
-  const isVerifiedPath = path.startsWith(ROUTES.AUTH.SIGNUP_VERIFIED);
-  const isCallbackPath = path.startsWith("/auth/callback");
   const isAdmin = decodedToken?.role === "ADMIN";
-  
-  
+
+  /**
+   * -----------------------------------------
+   * 1. ALWAYS allow signup verified to render
+   * -----------------------------------------
+   */
+  if (isSignupVerifiedPath || isSignupSuccessPath) {
+    return response;
+  }
+
+  /**
+   * -------------------------------------------------------
+   * 2. Force incomplete users to correct onboarding page
+   * -------------------------------------------------------
+   */
   if (
     user &&
     decodedToken &&
     decodedToken.onboarding_complete === false &&
     !isOnboardingPath &&
-    !isVerifiedPath &&
     !isCallbackPath &&
     !isAdmin
   ) {
@@ -117,7 +139,11 @@ export async function proxy(request: NextRequest) {
     );
   }
 
-  // Redirect users on the wrong onboarding page to the correct one
+  /**
+   * -------------------------------------------------------
+   * 3. Prevent wrong onboarding variant
+   * -------------------------------------------------------
+   */
   if (
     user &&
     decodedToken &&
@@ -126,29 +152,41 @@ export async function proxy(request: NextRequest) {
     !isAdmin
   ) {
     const correctOnboardingRoute = getOnboardingRoute(decodedToken);
-    if (path !== correctOnboardingRoute && !path.startsWith(correctOnboardingRoute)) {
+    if (
+      path !== correctOnboardingRoute &&
+      !path.startsWith(correctOnboardingRoute)
+    ) {
       return NextResponse.redirect(
         new URL(correctOnboardingRoute, request.nextUrl)
       );
     }
   }
 
-  // Prevent users who completed onboarding (or are admins) from accessing onboarding page
+  /**
+   * -------------------------------------------------------
+   * 4. Prevent onboarded users from onboarding pages
+   * -------------------------------------------------------
+   */
   if (
     user &&
     decodedToken &&
     (decodedToken.onboarding_complete === true || isAdmin) &&
-    path.startsWith(ROUTES.AUTH.ONBOARDING)
+    isOnboardingPath
   ) {
-    return NextResponse.redirect(new URL(ROUTES.HOME, request.nextUrl));
+    return NextResponse.redirect(
+      new URL(ROUTES.HOME, request.nextUrl)
+    );
   }
 
-  // From here down, either:
-  // - user is not logged in, OR
-  // - user is logged in and onboarding_complete === true
-
+  /**
+   * -------------------------------------------------------
+   * 5. Auth / public / protected routing rules
+   * -------------------------------------------------------
+   */
   if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, request.nextUrl));
+    return NextResponse.redirect(
+      new URL(ROUTES.AUTH.LOGIN, request.nextUrl)
+    );
   }
 
   if (isAuthOnlyRoute && user) {
@@ -158,7 +196,9 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!user && !isPublicRoute && path !== ROUTES.HOME) {
-    return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, request.nextUrl));
+    return NextResponse.redirect(
+      new URL(ROUTES.AUTH.LOGIN, request.nextUrl)
+    );
   }
 
   if (path === ROUTES.HOME) {
