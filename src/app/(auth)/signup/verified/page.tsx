@@ -44,13 +44,7 @@ export default async function SignupVerifiedPage({ searchParams }: SignupVerifie
   const isMobileDevice = detectMobileDevice(userAgent);
 
   const isWebSignup = session?.user?.user_metadata?.source === "web";
-  
-  const isRetoolCreatedUser = 
-    (session?.user?.user_metadata?.source === "retool" || 
-    session?.user?.user_metadata?.retool === true || 
-    params.retool === "true" ||
-    params.adminInvite === "true") &&
-    !isWebSignup;
+  const showMobileOption = !isWebSignup;
 
   let onboardingRoute: string = ROUTES.AUTH.ONBOARDING;
 
@@ -74,7 +68,7 @@ export default async function SignupVerifiedPage({ searchParams }: SignupVerifie
     return `${MOBILE_DEEP_LINK}?${params.toString()}`;
   };
 
-  if (isRetoolCreatedUser) {
+  if (showMobileOption) {
     const webAppButton = (
       <NavLink href={onboardingRoute} className="block">
         <Button
