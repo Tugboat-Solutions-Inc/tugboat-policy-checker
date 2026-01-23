@@ -22,11 +22,15 @@ export default async function DashboardRootLayout({
     getDecodedJWT(),
   ]);
 
+  const isCompanyClient = 
+    accountType === "COMPANY" && 
+    decodedToken?.orgs?.[0]?.is_client === true;
+
   let content = children;
 
-  if (accountType === "COMPANY") {
+  if (accountType === "COMPANY" && !isCompanyClient) {
     content = company;
-  } else if (accountType === "INDIVIDUAL") {
+  } else if (accountType === "INDIVIDUAL" || isCompanyClient) {
     content = individual;
   } else if (accountType === "MULTI_TENANT") {
     content = multiTenant;
@@ -35,7 +39,7 @@ export default async function DashboardRootLayout({
   let properties: GetPropertiesResponse | null = null;
 
   if (
-    (accountType === "MULTI_TENANT" || accountType === "COMPANY") &&
+    (accountType === "MULTI_TENANT" || (accountType === "COMPANY" && !isCompanyClient)) &&
     decodedToken?.orgs?.[0]?.org_id
   ) {
     const organizationId = decodedToken.orgs[0].org_id;
@@ -53,9 +57,10 @@ export default async function DashboardRootLayout({
 
   return (
     <DashboardLayout
-      accountType={accountType}
+      accountType={isCompanyClient ? "INDIVIDUAL" : accountType}
       properties={properties}
       decodedToken={decodedToken}
+      isCompanyClient={isCompanyClient}
     >
       {content}
     </DashboardLayout>

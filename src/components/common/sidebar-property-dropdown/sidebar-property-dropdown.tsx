@@ -28,6 +28,7 @@ export function SidebarPropertyDropdown({
   sharedProperties = [],
   isCollapsed = false,
   onCollapsedClick,
+  isCompanyClient = false,
 }: SidebarPropertyDropdownProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -40,7 +41,7 @@ export function SidebarPropertyDropdown({
   const [isRetrying, setIsRetrying] = useState(false);
   const menuButtonRef = useRef<HTMLDivElement>(null);
 
-  const isCompany = userType === USER_TYPES.COMPANY;
+  const isCompany = userType === USER_TYPES.COMPANY && !isCompanyClient;
   const allProperties = isCompany
     ? [...ownedProperties, ...sharedProperties]
     : ownedProperties;
@@ -247,13 +248,15 @@ export function SidebarPropertyDropdown({
           </>
         )}
 
-        <AddPropertySection
-          isModalOpen={isModalOpen}
-          onModalOpenChange={setIsModalOpen}
-          steps={steps}
-          onComplete={handleComplete}
-          onCancel={handleModalClose}
-        />
+        {!isCompanyClient && (
+          <AddPropertySection
+            isModalOpen={isModalOpen}
+            onModalOpenChange={setIsModalOpen}
+            steps={steps}
+            onComplete={handleComplete}
+            onCancel={handleModalClose}
+          />
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -47,6 +47,7 @@ interface AppSidebarProps {
   sharedProperties: Property[];
   currentUserId: string;
   impersonatedUserId: string | null;
+  isCompanyClient?: boolean;
 }
 
 export default function AppSidebar({
@@ -55,6 +56,7 @@ export default function AppSidebar({
   sharedProperties: initialSharedProperties,
   currentUserId,
   impersonatedUserId,
+  isCompanyClient = false,
 }: AppSidebarProps) {
   const user = useCurrentUser();
   const adminUser = useAdminUser();
@@ -157,6 +159,7 @@ export default function AppSidebar({
                 sharedProperties={sharedProperties}
                 isCollapsed={isCollapsed}
                 onCollapsedClick={toggleSidebar}
+                isCompanyClient={isCompanyClient}
               />
             </div>
           )}

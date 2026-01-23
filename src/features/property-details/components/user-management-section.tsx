@@ -62,9 +62,18 @@ export function UserManagementSection({
                 ) === index
             )
             .sort((a, b) => {
-              const aIsOwner = a.organization_user.role === "ADMIN" ? 0 : 1;
-              const bIsOwner = b.organization_user.role === "ADMIN" ? 0 : 1;
-              return aIsOwner - bIsOwner;
+              const getPriority = (access: propertyAccess) => {
+                if (access.is_client) return 2;
+                if (access.organization_user.role === "ADMIN") return 0;
+                return 1;
+              };
+              
+              const priorityDiff = getPriority(a) - getPriority(b);
+              if (priorityDiff !== 0) return priorityDiff;
+              
+              const aName = `${a.organization_user.user?.first_name || ""} ${a.organization_user.user?.last_name || ""}`.toLowerCase();
+              const bName = `${b.organization_user.user?.first_name || ""} ${b.organization_user.user?.last_name || ""}`.toLowerCase();
+              return aName.localeCompare(bName);
             })
             .map((access) => (
               <UserRow
