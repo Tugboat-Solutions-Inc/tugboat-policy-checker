@@ -28,7 +28,12 @@ function detectMobileDevice(userAgent: string): boolean {
   return /iPhone|iPad|iPod|Android/i.test(userAgent);
 }
 
-export default async function SignupVerifiedPage() {
+interface SignupVerifiedPageProps {
+  searchParams: Promise<{ adminInvite?: string; retool?: string }>;
+}
+
+export default async function SignupVerifiedPage({ searchParams }: SignupVerifiedPageProps) {
+  const params = await searchParams;
   const supabase = await createClient();
   const {
     data: { session },
@@ -38,7 +43,11 @@ export default async function SignupVerifiedPage() {
   const userAgent = headersList.get("user-agent") || "";
   const isMobileDevice = detectMobileDevice(userAgent);
 
-  const isRetoolCreatedUser = session?.user?.user_metadata?.invited === true;
+  const isRetoolFlow = params.retool === "true";
+  const isRetoolCreatedUser = 
+    session?.user?.user_metadata?.invited === true || 
+    params.adminInvite === "true" ||
+    isRetoolFlow;
 
   let onboardingRoute: string = ROUTES.AUTH.ONBOARDING;
 
@@ -49,7 +58,20 @@ export default async function SignupVerifiedPage() {
     onboardingRoute = getOnboardingRoute(orgType, orgRole);
   }
 
-  if (isRetoolCreatedUser) {
+  const buildMobileDeepLink = (): string => {
+    if (!session?.access_token || !session?.refresh_token) {
+      return MOBILE_DEEP_LINK;
+    }
+
+    const params = new URLSearchParams({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
+
+    return `${MOBILE_DEEP_LINK}?${params.toString()}`;
+  };
+
+  if (isRetoolFlow || isRetoolCreatedUser) {
     const webAppButton = (
       <NavLink href={onboardingRoute} className="block">
         <Button
@@ -63,7 +85,7 @@ export default async function SignupVerifiedPage() {
     );
 
     const mobileAppButton = (
-      <a href={MOBILE_DEEP_LINK} className="block">
+      <a href={buildMobileDeepLink()} className="block">
         <Button
           variant={isMobileDevice ? "default" : "outline"}
           size="lg"
