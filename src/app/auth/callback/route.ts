@@ -47,7 +47,7 @@ export async function GET(request: Request) {
         `${origin}${ROUTES.AUTH.LOGIN}?error=auth_callback_failed`
       );
     }
-    isSignupFlow = otpType === "signup" || otpType === "email";
+    isSignupFlow = otpType === "signup" || otpType === "email" || retool === "true";
     isRecoveryFlow = otpType === "recovery" || next === ROUTES.AUTH.RESET_PASSWORD;
   } else {
     return NextResponse.redirect(
