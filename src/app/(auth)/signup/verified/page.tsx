@@ -44,6 +44,7 @@ export default async function SignupVerifiedPage({ searchParams }: SignupVerifie
   const isMobileDevice = detectMobileDevice(userAgent);
 
   const isRetoolCreatedUser = 
+    session?.user?.user_metadata?.source === "retool" || 
     session?.user?.user_metadata?.retool === true || 
     params.retool === "true" ||
     params.adminInvite === "true";
