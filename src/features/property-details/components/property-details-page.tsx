@@ -73,6 +73,7 @@ export function PropertyDetailsPage({
   const router = useRouter();
   const { can } = usePermissions();
   const viewOnly = !can(CAPABILITIES.EDIT_PROPERTY);
+  const canManageUsers = can(CAPABILITIES.MANAGE_USERS);
   const updatePropertyMetadata = useSelectedPropertyStore((state) => state.updatePropertyMetadata);
 
   const [property, setProperty] = useState<Property | null>(initialProperty);
@@ -546,7 +547,7 @@ export function PropertyDetailsPage({
                   onRoleChange={handleRoleChange}
                   onRemove={handleRemoveUser}
                   onInvite={handleInvite}
-                  viewOnly={viewOnly}
+                  viewOnly={!canManageUsers}
                 />
               )}
             </>

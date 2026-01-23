@@ -3,6 +3,7 @@
 import { ActionResult } from "@/features/auth/api/user.actions";
 import {
   Capability,
+  CAPABILITIES,
   ROLE_CAPABILITIES,
 } from "@/constants/permissions.constants";
 import { getUserCapabilities } from "@/lib/permissions";
@@ -29,7 +30,9 @@ export async function getPropertyPermissions(
     const decoded = decodeAccessToken(session.access_token);
     const currentOrg = decoded?.orgs?.[0];
 
-    if (currentOrg?.owner || currentOrg?.role === "ADMIN") {
+    const isClient = currentOrg?.is_client === true;
+    
+    if (!isClient && (currentOrg?.owner || currentOrg?.role === "ADMIN")) {
       return {
         success: true,
         data: ROLE_CAPABILITIES.EDITOR,
@@ -55,7 +58,11 @@ export async function getPropertyPermissions(
       };
     }
 
-    const capabilities = getUserCapabilities(propertyAccess.data, user.data.id);
+    let capabilities = getUserCapabilities(propertyAccess.data, user.data.id);
+    
+    if (isClient) {
+      capabilities = capabilities.filter(cap => cap !== CAPABILITIES.MANAGE_USERS);
+    }
 
     return {
       success: true,
