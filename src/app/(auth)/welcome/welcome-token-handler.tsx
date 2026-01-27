@@ -57,14 +57,12 @@ export function WelcomeTokenHandler({ children }: { children: React.ReactNode })
 
         const decodedToken = decodeAccessToken(accessToken);
         const onboardingComplete = decodedToken?.onboarding_complete;
-        const orgType = decodedToken?.orgs?.[0]?.org_type;
-        const orgRole = decodedToken?.orgs?.[0]?.role;
 
         let targetRoute: string;
         if (onboardingComplete) {
           targetRoute = ROUTES.DASHBOARD.ROOT;
         } else {
-          targetRoute = getOnboardingRoute(orgType, orgRole);
+          targetRoute = ROUTES.AUTH.SIGNUP_VERIFIED;
         }
 
         window.location.href = targetRoute;

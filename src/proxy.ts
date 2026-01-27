@@ -15,6 +15,7 @@ const publicRoutes = [
   ...authOnlyRoutes,
   ROUTES.AUTH.SIGNUP_SUCCESS,
   ROUTES.AUTH.SIGNUP_VERIFIED,
+  ROUTES.AUTH.ACCOUNT_VERIFIED,
   ROUTES.AUTH.FORGOT_PASSWORD_SENT,
   ROUTES.AUTH.RESET_PASSWORD,
   ROUTES.AUTH.RESET_PASSWORD_SUCCESS,
@@ -101,6 +102,13 @@ export async function proxy(request: NextRequest) {
   const isVerifiedPath = path.startsWith(ROUTES.AUTH.SIGNUP_VERIFIED);
   const isCallbackPath = path.startsWith("/auth/callback");
   const isAdmin = decodedToken?.role === "ADMIN";
+
+  console.log("=== PROXY DEBUG ===");
+  console.log("Path:", path);
+  console.log("isVerifiedPath:", isVerifiedPath);
+  console.log("isCallbackPath:", isCallbackPath);
+  console.log("user:", !!user);
+  console.log("onboarding_complete:", decodedToken?.onboarding_complete);
 
   if (
     user &&

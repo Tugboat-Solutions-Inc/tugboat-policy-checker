@@ -66,7 +66,10 @@ export async function signup(prevState: any, formData: FormData) {
       emailRedirectTo: EMAIL_REDIRECT_URLS.SIGNUP_VERIFIED(
         env.NEXT_PUBLIC_BASE_URL
       ),
-      data: inviteToken ? { invite_token: inviteToken } : undefined,
+      data: {
+        source: "web",
+        ...(inviteToken ? { invite_token: inviteToken } : {}),
+      },
     },
   });
 

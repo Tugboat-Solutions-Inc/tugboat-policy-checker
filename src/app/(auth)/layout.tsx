@@ -2,16 +2,85 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { PageTransition } from "@/components/common/page-transition";
 import Logo from "@/components/common/logo";
 import { NavLink } from "@/components/common/nav-link";
 import { ROUTES } from "@/config/routes";
+import { createClient } from "@/utils/supabase/client";
+import { decodeAccessToken } from "@/lib/jwt";
+
+function useHashTokenHandler() {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    const handleHashToken = async () => {
+      const hash = window.location.hash;
+      
+      if (!hash || !hash.includes("access_token")) {
+        return;
+      }
+
+      setIsProcessing(true);
+
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+
+      if (!accessToken || !refreshToken) {
+        setIsProcessing(false);
+        return;
+      }
+
+      try {
+        const supabase = createClient();
+        
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (error) {
+          console.error("Error setting session:", error);
+          setIsProcessing(false);
+          return;
+        }
+
+        const decodedToken = decodeAccessToken(accessToken);
+        const onboardingComplete = decodedToken?.onboarding_complete;
+
+        if (onboardingComplete) {
+          window.location.href = ROUTES.DASHBOARD.ROOT;
+        } else {
+          window.location.href = ROUTES.AUTH.SIGNUP_VERIFIED;
+        }
+      } catch (error) {
+        console.error("Error processing token:", error);
+        setIsProcessing(false);
+      }
+    };
+
+    handleHashToken();
+  }, []);
+
+  return isProcessing;
+}
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const isProcessingToken = useHashTokenHandler();
+
+  if (isProcessingToken) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="grid md:grid-cols-[1fr_1fr] h-screen p-4 md:p-8 gap-4 md:gap-8 overflow-hidden"

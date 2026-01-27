@@ -20,6 +20,7 @@ export const ROUTES = {
     ONBOARDING_MULTI_TENANT: "/onboarding/multi-tenant",
     ONBOARDING_COMPANY: "/onboarding/company",
     ONBOARDING_MEMBER: "/onboarding/member",
+    ACCOUNT_VERIFIED: "/account-verified",
   },
 
   DASHBOARD: {
