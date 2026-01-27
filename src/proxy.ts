@@ -52,10 +52,11 @@ export async function proxy(request: NextRequest) {
     path.startsWith(route)
   );
   const isPublicRoute = publicRoutes.some((route) => path.startsWith(route));
-  const isAuthOnlyRoute = authOnlyRoutes.some((route) =>
-    path.startsWith(route) && 
-    !path.startsWith(ROUTES.AUTH.SIGNUP_VERIFIED) && 
-    !path.startsWith(ROUTES.AUTH.SIGNUP_SUCCESS)
+  const isAuthOnlyRoute = authOnlyRoutes.some(
+    (route) =>
+      path.startsWith(route) &&
+      !path.startsWith(ROUTES.AUTH.SIGNUP_VERIFIED) &&
+      !path.startsWith(ROUTES.AUTH.SIGNUP_SUCCESS)
   );
 
   let response = NextResponse.next({ request });
@@ -100,16 +101,7 @@ export async function proxy(request: NextRequest) {
   const isVerifiedPath = path.startsWith(ROUTES.AUTH.SIGNUP_VERIFIED);
   const isCallbackPath = path.startsWith("/auth/callback");
   const isAdmin = decodedToken?.role === "ADMIN";
-  
-  console.log("=== PROXY DEBUG ===");
-  console.log("Path:", path);
-  console.log("isVerifiedPath:", isVerifiedPath);
-  console.log("isCallbackPath:", isCallbackPath);
-  console.log("ROUTES.AUTH.SIGNUP_VERIFIED:", ROUTES.AUTH.SIGNUP_VERIFIED);
-  console.log("user:", !!user);
-  console.log("decodedToken:", !!decodedToken);
-  console.log("onboarding_complete:", decodedToken?.onboarding_complete);
-  
+
   if (
     user &&
     decodedToken &&
@@ -119,7 +111,6 @@ export async function proxy(request: NextRequest) {
     !isCallbackPath &&
     !isAdmin
   ) {
-    console.log("REDIRECTING TO ONBOARDING from path:", path);
     const correctOnboardingRoute = getOnboardingRoute(decodedToken);
     return NextResponse.redirect(
       new URL(correctOnboardingRoute, request.nextUrl)
@@ -135,7 +126,10 @@ export async function proxy(request: NextRequest) {
     !isAdmin
   ) {
     const correctOnboardingRoute = getOnboardingRoute(decodedToken);
-    if (path !== correctOnboardingRoute && !path.startsWith(correctOnboardingRoute)) {
+    if (
+      path !== correctOnboardingRoute &&
+      !path.startsWith(correctOnboardingRoute)
+    ) {
       return NextResponse.redirect(
         new URL(correctOnboardingRoute, request.nextUrl)
       );
