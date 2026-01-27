@@ -103,13 +103,6 @@ export async function proxy(request: NextRequest) {
   const isCallbackPath = path.startsWith("/auth/callback");
   const isAdmin = decodedToken?.role === "ADMIN";
 
-  console.log("=== PROXY DEBUG ===");
-  console.log("Path:", path);
-  console.log("isVerifiedPath:", isVerifiedPath);
-  console.log("isCallbackPath:", isCallbackPath);
-  console.log("user:", !!user);
-  console.log("onboarding_complete:", decodedToken?.onboarding_complete);
-
   if (
     user &&
     decodedToken &&
