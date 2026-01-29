@@ -4,21 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { decodeAccessToken } from "@/lib/jwt";
 import { ROUTES } from "@/config/routes";
-
-function getOnboardingRoute(orgType: string | undefined, orgRole: string | undefined): string {
-  if (orgRole === "MEMBER") {
-    return ROUTES.AUTH.ONBOARDING_MEMBER;
-  }
-
-  switch (orgType) {
-    case "MULTI_TENANT":
-      return ROUTES.AUTH.ONBOARDING_MULTI_TENANT;
-    case "COMPANY":
-      return ROUTES.AUTH.ONBOARDING_COMPANY;
-    default:
-      return ROUTES.AUTH.ONBOARDING;
-  }
-}
+import { getOnboardingRoute } from "@/lib/onboarding.utils";
 
 export function WelcomeTokenHandler({ children }: { children: React.ReactNode }) {
   const [isProcessing, setIsProcessing] = useState(true);

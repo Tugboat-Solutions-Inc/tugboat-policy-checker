@@ -3,6 +3,8 @@ import { createServerClient } from "@supabase/ssr";
 import { env } from "@/utils/env";
 import { ROUTES } from "@/config/routes";
 import { decodeAccessToken, type DecodedJWT } from "@/lib/jwt";
+import { getOnboardingRoute } from "@/lib/onboarding.utils";
+import { USER_ROLES } from "@/constants/roles.constants";
 
 const protectedRoutes = [ROUTES.DASHBOARD.ROOT, ROUTES.AUTH.ONBOARDING];
 const authOnlyRoutes = [
@@ -19,32 +21,10 @@ const publicRoutes = [
   ROUTES.AUTH.FORGOT_PASSWORD_SENT,
   ROUTES.AUTH.RESET_PASSWORD,
   ROUTES.AUTH.RESET_PASSWORD_SUCCESS,
-  "/auth/callback",
-  "/invite",
+  ROUTES.AUTH.CALLBACK,
+  ROUTES.INVITE.ROOT,
 ];
 
-function getOnboardingRoute(decodedToken: DecodedJWT | null): string {
-  if (!decodedToken) {
-    return ROUTES.AUTH.ONBOARDING;
-  }
-
-  const orgType = decodedToken.orgs?.[0]?.org_type;
-  const orgRole = decodedToken.orgs?.[0]?.role;
-
-  if (orgRole === "MEMBER") {
-    return ROUTES.AUTH.ONBOARDING_MEMBER;
-  }
-
-  switch (orgType) {
-    case "MULTI_TENANT":
-      return ROUTES.AUTH.ONBOARDING_MULTI_TENANT;
-    case "COMPANY":
-      return ROUTES.AUTH.ONBOARDING_COMPANY;
-    case "INDIVIDUAL":
-    default:
-      return ROUTES.AUTH.ONBOARDING;
-  }
-}
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -100,8 +80,8 @@ export async function proxy(request: NextRequest) {
   // Admin users skip onboarding entirely
   const isOnboardingPath = path.startsWith(ROUTES.AUTH.ONBOARDING);
   const isVerifiedPath = path.startsWith(ROUTES.AUTH.SIGNUP_VERIFIED);
-  const isCallbackPath = path.startsWith("/auth/callback");
-  const isAdmin = decodedToken?.role === "ADMIN";
+  const isCallbackPath = path.startsWith(ROUTES.AUTH.CALLBACK);
+  const isAdmin = decodedToken?.role === USER_ROLES.ADMIN;
 
   if (
     user &&

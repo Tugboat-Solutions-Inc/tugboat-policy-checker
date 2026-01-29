@@ -1,4 +1,5 @@
 import type { propertyAccess } from "../types/property-access.types";
+import { ORG_ROLES, ACCESS_TYPES } from "@/constants/roles.constants";
 
 interface CurrentUser {
   id: string;
@@ -21,7 +22,7 @@ export function addOwnerToAccessList(
 ): propertyAccess[] {
   if (!user || !currentOrg) return accessState;
 
-  const isOrgAdmin = currentOrg.owner || currentOrg.role === "ADMIN";
+  const isOrgAdmin = currentOrg.owner || currentOrg.role === ORG_ROLES.ADMIN;
   if (!isOrgAdmin) return accessState;
 
   if (accessState.some((a) => a.organization_user.user_id === user.id)) {
@@ -44,11 +45,11 @@ export function addOwnerToAccessList(
         organization_id: currentOrg.org_id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        role: "ADMIN",
+        role: ORG_ROLES.ADMIN,
       },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      access_type: "EDITOR",
+      access_type: ACCESS_TYPES.EDITOR,
       is_client: false,
     },
     ...accessState,

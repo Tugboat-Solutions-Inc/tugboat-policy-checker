@@ -6,23 +6,9 @@ import { createClient } from "@/utils/supabase/server";
 import { decodeAccessToken } from "@/lib/jwt";
 import { headers } from "next/headers";
 import { Smartphone } from "lucide-react";
+import { getOnboardingRoute } from "@/lib/onboarding.utils";
 
 const MOBILE_DEEP_LINK = "tugboat://tugboat.app";
-
-function getOnboardingRoute(orgType: string | undefined, orgRole: string | undefined): string {
-  if (orgRole === "MEMBER") {
-    return ROUTES.AUTH.ONBOARDING_MEMBER;
-  }
-
-  switch (orgType) {
-    case "MULTI_TENANT":
-      return ROUTES.AUTH.ONBOARDING_MULTI_TENANT;
-    case "COMPANY":
-      return ROUTES.AUTH.ONBOARDING_COMPANY;
-    default:
-      return ROUTES.AUTH.ONBOARDING;
-  }
-}
 
 function detectMobileDevice(userAgent: string): boolean {
   return /iPhone|iPad|iPod|Android/i.test(userAgent);

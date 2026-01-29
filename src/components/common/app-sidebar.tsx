@@ -33,6 +33,7 @@ import {
 import { useLogout } from "@/hooks/use-logout";
 import { ROUTES } from "@/config/routes";
 import { USER_TYPES } from "@/constants/user-types";
+import { USER_ROLES, ORG_ROLES } from "@/constants/roles.constants";
 import Image from "next/image";
 import { SuperadminUserChangeMenu } from "@/features/dashboard/components/superadmin-user-change-menu";
 import LogoNoText from "./logo-notext";
@@ -81,8 +82,8 @@ export default function AppSidebar({
     .toUpperCase()
     .slice(0, 2);
 
-  const isSuperAdmin = adminUser?.role === "ADMIN";
-  const isOrgAdmin = currentOrg?.owner || currentOrg?.role === "ADMIN";
+  const isSuperAdmin = adminUser?.role === USER_ROLES.ADMIN;
+  const isOrgAdmin = currentOrg?.owner || currentOrg?.role === ORG_ROLES.ADMIN;
   const isClient = currentOrg?.is_client === true;
   const isCollapsed = state === "collapsed";
   return (

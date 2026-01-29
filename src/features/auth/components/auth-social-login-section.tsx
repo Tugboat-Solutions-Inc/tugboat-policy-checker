@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
+import { ROUTES } from "@/config/routes";
 
 interface AuthSocialLoginSectionProps {
   inviteToken?: string;
@@ -18,7 +19,7 @@ export default function AuthSocialLoginSection({
     setIsGoogleLoading(true);
     const supabase = createClient();
     
-    const redirectTo = `${window.location.origin}/auth/callback${inviteToken ? `?next=/invite?token=${inviteToken}` : ""}`;
+    const redirectTo = `${window.location.origin}${ROUTES.AUTH.CALLBACK}${inviteToken ? `?next=${ROUTES.INVITE.ACCEPT(inviteToken)}` : ""}`;
     
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -32,7 +33,7 @@ export default function AuthSocialLoginSection({
     setIsAppleLoading(true);
     const supabase = createClient();
     
-    const redirectTo = `${window.location.origin}/auth/callback${inviteToken ? `?next=/invite?token=${inviteToken}` : ""}`;
+    const redirectTo = `${window.location.origin}${ROUTES.AUTH.CALLBACK}${inviteToken ? `?next=${ROUTES.INVITE.ACCEPT(inviteToken)}` : ""}`;
     
     await supabase.auth.signInWithOAuth({
       provider: "apple",

@@ -20,6 +20,7 @@ import { getPropertyAccess, updatePropertyAccess, createPropertyAccess } from ".
 import { createUnit } from "@/features/dashboard/api/unit.actions";
 import { addOwnerToAccessList } from "../utils/property-access.utils";
 import { INVITE_MODAL_CONFIGS } from "@/components/common/invite-modal/config/invite-modal-config";
+import { ACCESS_TYPES } from "@/constants/roles.constants";
 import type { UserTypeConfig, UserType } from "../types/property-details.types";
 import type { propertyAccess, AccessType } from "../types/property-access.types";
 import type { Property } from "@/features/auth/types/property.types";
@@ -225,7 +226,7 @@ export function PropertyDetailsPage({
 
     const users = data.tenantInvites.map((invite: any) => ({
       email: invite.email,
-      access_type: invite.permission === "edit" ? "EDITOR" : "VIEWER",
+      access_type: invite.permission === "edit" ? ACCESS_TYPES.EDITOR : ACCESS_TYPES.VIEWER,
       is_client: true,
     }));
 
