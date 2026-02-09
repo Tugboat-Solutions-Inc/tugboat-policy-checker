@@ -81,7 +81,7 @@ export default async function SignupVerifiedPage({ searchParams }: SignupVerifie
     );
 
     return (
-      <div className="space-y-10">
+      <div className="space-y-6 md:space-y-10">
         <AuthIntroSection
           title="Your account has been successfully verified!"
           description=""
@@ -104,7 +104,7 @@ export default async function SignupVerifiedPage({ searchParams }: SignupVerifie
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 md:space-y-10">
       <AuthIntroSection
         title="Your account has been successfully verified!"
         description=""

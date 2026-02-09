@@ -113,7 +113,7 @@ export default function OnboardingIndividualPage() {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 md:space-y-10">
       <OnboardingIntroSection
         title={
           currentStep == 1 ? "Welcome to Tugboat" : "Create Your First Property"

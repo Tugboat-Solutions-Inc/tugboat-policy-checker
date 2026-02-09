@@ -9,12 +9,12 @@ import { WelcomeTokenHandler } from "./welcome-token-handler";
 export default function WelcomePage() {
   return (
     <WelcomeTokenHandler>
-      <div className="space-y-10">
+      <div className="space-y-6 md:space-y-10">
         <AuthIntroSection
           title="Welcome to Tugboat"
           description="Document every asset, stay organized, and streamline insurance claims"
         />
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
           <AuthSocialLoginSection />
           <TextSeparator label="or" />
           <div className="gap-3 flex flex-col">

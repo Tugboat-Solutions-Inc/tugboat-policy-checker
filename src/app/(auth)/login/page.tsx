@@ -16,7 +16,7 @@ export default function LoginPage() {
         />
       </header>
       
-      <section className="mt-10 space-y-8" aria-label="Login options">
+      <section className="mt-6 md:mt-10 space-y-6 md:space-y-8" aria-label="Login options">
         <AuthLoginForm />
         
         <TextSeparator label="or" />

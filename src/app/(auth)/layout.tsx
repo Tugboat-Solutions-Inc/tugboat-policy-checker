@@ -83,17 +83,17 @@ export default function AuthLayout({
 
   return (
     <div 
-      className="grid md:grid-cols-[1fr_1fr] h-screen p-4 md:p-8 gap-4 md:gap-8 overflow-hidden"
+      className="grid md:grid-cols-[1fr_1fr] min-h-dvh p-4 md:p-8 gap-4 md:gap-8"
       role="presentation"
     >
       <main 
-        className="max-w-96 mx-auto py-6 md:py-12 w-full flex flex-col overflow-hidden"
+        className="max-w-96 mx-auto py-6 md:py-12 w-full flex flex-col"
         aria-label="Authentication"
       >
         <NavLink 
           href={ROUTES.HOME} 
           aria-label="Go to Tugboat homepage"
-          className="inline-block mb-24 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm w-fit"
+          className="inline-block mb-10 md:mb-24 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm w-fit"
         >
           <Logo className="h-7" aria-hidden="true" />
           <span className="sr-only">Tugboat</span>
@@ -102,7 +102,7 @@ export default function AuthLayout({
       </main>
       
       <motion.aside 
-        className="rounded-2xl overflow-hidden hidden md:block h-full relative"
+        className="hidden md:block sticky top-8 h-[calc(100dvh-4rem)] rounded-2xl overflow-hidden relative"
         aria-hidden="true"
         initial={{ opacity: 0, scale: 0.96, x: 20 }}
         animate={{ 

@@ -202,7 +202,7 @@ export default function OnboardingMultiTenantPage() {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 md:space-y-10">
       <OnboardingIntroSection
         title={getTitle(currentStep) ?? ""}
         description={getDescription(currentStep) ?? ""}

@@ -17,7 +17,7 @@ export default function ResetPasswordPage() {
         />
       </header>
       
-      <section className="mt-10" aria-label="Create new password">
+      <section className="mt-6 md:mt-10" aria-label="Create new password">
         <Suspense 
           fallback={
             <div className="space-y-8" role="status" aria-label="Loading form">

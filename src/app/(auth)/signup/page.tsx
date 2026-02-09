@@ -36,7 +36,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         )}
       </header>
       
-      <section className="mt-10 space-y-8" aria-label="Sign up options">
+      <section className="mt-6 md:mt-10 space-y-6 md:space-y-8" aria-label="Sign up options">
         {!invite && (
           <>
             <AuthSocialLoginSection inviteToken={invite_token} />
