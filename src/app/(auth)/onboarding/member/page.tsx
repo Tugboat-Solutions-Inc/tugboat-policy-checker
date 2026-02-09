@@ -101,10 +101,10 @@ export default function OnboardingMemberPage() {
         </div>
       )}
 
-      <h1 className="text-3xl font-semibold mb-3">
+      <h1 className="text-2xl md:text-3xl font-semibold mb-2 md:mb-3">
         Welcome to {organizationName}
       </h1>
-      <p className="text-base font-regular text-muted-foreground mb-11">
+      <p className="text-base font-regular text-muted-foreground mb-6 md:mb-11">
         Let's set up your profile.
       </p>
 

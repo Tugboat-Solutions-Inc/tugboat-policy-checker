@@ -10,6 +10,7 @@ import { toast } from "@/components/common/toast/toast";
 import { NotificationsTab } from "@/features/settings/components/notifications-tab";
 import { OrganizationUsersSection } from "@/features/organizations/components/organization-users-section";
 import { USER_TYPES, UserType } from "@/constants/user-types";
+import { ORG_ROLES } from "@/constants/roles.constants";
 import { useCurrentOrg } from "@/hooks/use-auth";
 import { UpdateUserInput, User } from "@/features/auth/schemas/user.schemas";
 import { updateUser } from "@/features/auth/api/user.actions";
@@ -184,7 +185,7 @@ export function SettingsTabs({
               user={currentUser}
               accountType={accountType}
               canEditCompanyName={
-                (currentOrg?.owner || currentOrg?.role === "ADMIN") &&
+                (currentOrg?.owner || currentOrg?.role === ORG_ROLES.ADMIN) &&
                 !currentOrg?.is_client
               }
               onFormChange={setIsFormDirty}

@@ -35,7 +35,7 @@ export function AuthIntroSection({
       
       <h1 
         id={headingId}
-        className="text-3xl font-bold mb-3"
+        className="text-2xl md:text-3xl font-bold mb-2 md:mb-3"
       >
         {title}
       </h1>

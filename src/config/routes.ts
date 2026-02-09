@@ -2,6 +2,7 @@ export const ROUTES = {
   HOME: "/",
 
   INVITE: {
+    ROOT: "/invite",
     ACCEPT: (token: string) => `/invite?token=${token}`,
   },
 
@@ -21,6 +22,7 @@ export const ROUTES = {
     ONBOARDING_COMPANY: "/onboarding/company",
     ONBOARDING_MEMBER: "/onboarding/member",
     ACCOUNT_VERIFIED: "/account-verified",
+    CALLBACK: "/auth/callback",
   },
 
   DASHBOARD: {
@@ -50,6 +52,6 @@ export const ROUTES = {
 } as const;
 
 export const EMAIL_REDIRECT_URLS = {
-  SIGNUP_VERIFIED: (baseUrl: string) => `${baseUrl}/auth/callback`,
-  RESET_PASSWORD: (baseUrl: string) => `${baseUrl}/auth/callback?next=/reset-password`,
+  SIGNUP_VERIFIED: (baseUrl: string) => `${baseUrl}${ROUTES.AUTH.CALLBACK}`,
+  RESET_PASSWORD: (baseUrl: string) => `${baseUrl}${ROUTES.AUTH.CALLBACK}?next=${ROUTES.AUTH.RESET_PASSWORD}`,
 } as const;

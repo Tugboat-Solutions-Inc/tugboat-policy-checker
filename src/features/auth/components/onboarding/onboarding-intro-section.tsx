@@ -16,7 +16,7 @@ export function OnboardingIntroSection({
   return (
     <div>
       {/* Step Indicator */}
-      <div className="inline-flex items-center h-6 gap-2 rounded-[8px] bg-muted p-3 mb-10">
+      <div className="inline-flex items-center h-6 gap-2 rounded-[8px] bg-muted p-3 mb-6 md:mb-10">
         {Array.from({ length: totalSteps }).map((_, i) => {
           const step = i + 1;
           const isActive = step === currentStep;
@@ -35,7 +35,7 @@ export function OnboardingIntroSection({
         })}
       </div>
 
-      <h1 className="text-3xl font-bold mb-3">{title}</h1>
+      <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-3">{title}</h1>
       <p className="text-base font-regular text-muted-foreground pr-5">
         {description}
       </p>

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { LayoutGroup } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, OctagonXIcon } from "lucide-react";
 import EmptyState from "@/components/common/empty-state";
 import { CollectionCard } from "@/components/common/collection-card/collection-card";
 import EmblaCarousel from "@/components/common/carousel/embla-carousel";
@@ -18,6 +18,7 @@ import { TugboatMultiStepModal } from "@/components/common/tugboat-modal/tugboat
 import { AddCollectionForm } from "./add-collection-form";
 import { addCollectionSchema } from "../schemas/dashboard-schemas";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ROUTES } from "@/config/routes";
 import { useSelectedPropertyId } from "@/hooks/use-properties";
 import { usePermissions } from "@/components/common/permissions-provider";
@@ -69,6 +70,7 @@ export function DashboardCollectionsSection({
   const [description, setDescription] = useState<string>("");
   const [collectionName, setCollectionName] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [creationError, setCreationError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -197,12 +199,16 @@ export function DashboardCollectionsSection({
     }
   };
 
-  const handleCreateCollection = async () => {
+  const handleCreateCollection = async (): Promise<boolean> => {
+    setCreationError(null);
+
     try {
       const unitId = getFirstUnitId(property);
       if (!unitId) {
-        toast.error("No unit found for this property");
-        return;
+        const message = "This property doesn't have a unit set up yet. Please contact support to resolve this.";
+        setCreationError(message);
+        toast.error("Unable to create collection", message);
+        return false;
       }
 
       const cover_image_b64 = await convertImageToBase64(coverImageFile);
@@ -224,8 +230,10 @@ export function DashboardCollectionsSection({
 
       if (!result.success) {
         toast.dismiss(loadingToast);
-        toast.error(`Failed to create collection "${collectionName}"`, result.message || "Please try again");
-        return;
+        const message = result.message || "Something went wrong on our end. Please try again.";
+        setCreationError(message);
+        toast.error(`Failed to create collection`, message);
+        return false;
       }
 
       const collectionId = result.data.id;
@@ -275,10 +283,14 @@ export function DashboardCollectionsSection({
       router.push(
         ROUTES.DASHBOARD.COLLECTION(property.id, collectionId, unitId)
       );
+      return true;
     } catch (error) {
-      toast.error(
-        `Failed to create collection: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
+      const message = error instanceof Error
+        ? `Something went wrong: ${error.message}. Please try again.`
+        : "An unexpected error occurred. Please try again.";
+      setCreationError(message);
+      toast.error("Failed to create collection", message);
+      return false;
     }
   };
 
@@ -291,6 +303,7 @@ export function DashboardCollectionsSection({
       setCoverImageFile(null);
       setPhotos([]);
       setUploadedPhotos([]);
+      setCreationError(null);
     }
   }, [isMultiStepModalOpen]);
 
@@ -375,6 +388,13 @@ export function DashboardCollectionsSection({
                   "Upload photos of your items to add them to a collection.",
                 component: (
                   <div>
+                    {creationError && (
+                      <Alert variant="destructive" className="mb-4">
+                        <OctagonXIcon className="size-4" />
+                        <AlertTitle>Failed to create collection</AlertTitle>
+                        <AlertDescription>{creationError}</AlertDescription>
+                      </Alert>
+                    )}
                     <Field className="gap-2">
                       <div className="flex flex-row justify-between">
                         <FieldLabel htmlFor="notes" className="gap-1">

@@ -9,6 +9,7 @@ import {
 import { BaseToast } from "@/components/common/toast/base-toast";
 
 const TOAST_DURATION = 3000;
+const TOAST_ERROR_DURATION = 5000;
 
 export const toast = {
   success: (message: string, description?: string) => {
@@ -45,7 +46,7 @@ export const toast = {
           description={description}
         />
       ),
-      { duration: TOAST_DURATION }
+      { duration: TOAST_ERROR_DURATION }
     );
   },
 

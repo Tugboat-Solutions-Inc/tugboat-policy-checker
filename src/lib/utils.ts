@@ -6,6 +6,7 @@ import {
   CurrentUserType,
 } from "@/features/auth/types/auth-store.types";
 import { USER_TYPES } from "@/constants/user-types";
+import { ORG_ROLES, ACCESS_TYPES } from "@/constants/roles.constants";
 import { propertyAccess } from "@/features/property-details/types/property-access.types";
 import { useCurrentUser } from "@/hooks/use-auth";
 import type { Property } from "@/features/auth/types/property.types";
@@ -145,7 +146,7 @@ export function getIsStaticRole(
       return true; // Static role for COMPANY orgs
     }
   } else {
-    if (role === "ADMIN") {
+    if (role === ORG_ROLES.ADMIN) {
       return true; // Static role for INDIVIDUAL or MULTI_TENANT orgs
     }
   }
@@ -176,7 +177,7 @@ export function getRoleLabel(
   const role = access.organization_user.role;
   const accessType = access.access_type;
   if (!isStatic) {
-    if (accessType === "EDITOR") {
+    if (accessType === ACCESS_TYPES.EDITOR) {
       return "Can Edit";
     } else {
       return "Can View";
@@ -184,13 +185,13 @@ export function getRoleLabel(
   }
 
   if (currentUser.accountType === USER_TYPES.COMPANY) {
-    if (role === "ADMIN") {
+    if (role === ORG_ROLES.ADMIN) {
       return "Admin";
     } else {
       return "Team Member";
     }
   } else {
-    if (role === "ADMIN") {
+    if (role === ORG_ROLES.ADMIN) {
       return "Owner";
     } else {
       return "User";

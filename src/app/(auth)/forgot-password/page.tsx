@@ -13,7 +13,7 @@ export default function ForgotPasswordPage() {
         />
       </header>
       
-      <section className="mt-10" aria-label="Password reset request">
+      <section className="mt-6 md:mt-10" aria-label="Password reset request">
         <AuthForgotPasswordForm />
       </section>
     </article>
