@@ -283,6 +283,7 @@ export function DashboardCollectionsSection({
       router.push(
         ROUTES.DASHBOARD.COLLECTION(property.id, collectionId, unitId)
       );
+      return true;
     } catch (error) {
       const message = error instanceof Error
         ? `Something went wrong: ${error.message}. Please try again.`
