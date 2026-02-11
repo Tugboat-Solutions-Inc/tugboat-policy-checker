@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { TugboatModal } from "@/components/common/tugboat-modal/tugboat-modal";
 import { Button } from "@/components/ui/button";
 import { UploadImageDropzone } from "@/components/common/upload-image/upload-image-dropzone";
@@ -33,8 +33,7 @@ export function UploadPhotosDialog({
   onUploadComplete,
 }: UploadPhotosDialogProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState<string | null>(null);
+  const uploadingRef = useRef(false);
 
   const handleFilesSelected = useCallback((files: File[]) => {
     const newFiles: UploadedFile[] = files.map((file) => ({
@@ -57,24 +56,22 @@ export function UploadPhotosDialog({
     [uploadedFiles]
   );
 
-  const handleUpload = async () => {
-    if (isUploading || uploadedFiles.length === 0) return;
+  const handleUpload = () => {
+    if (uploadingRef.current || uploadedFiles.length === 0) return;
+    uploadingRef.current = true;
 
-    setIsUploading(true);
-    setProgress(null);
-    try {
-      const photos = uploadedFiles.map((f) => f.file).filter(Boolean) as File[];
+    const photos = uploadedFiles.map((f) => f.file).filter(Boolean) as File[];
 
-      const result = await uploadPhotosInBatches(photos, {
-        collectionId,
-        unitId,
-        propertyId,
-        notes: " ",
-        onProgress: ({ completed, total }) => {
-          setProgress(`Uploading ${completed}/${total} photos...`);
-        },
-      });
+    uploadedFiles.forEach((f) => URL.revokeObjectURL(f.url));
+    setUploadedFiles([]);
+    onOpenChange(false);
 
+    uploadPhotosInBatches(photos, {
+      collectionId,
+      unitId,
+      propertyId,
+      notes: " ",
+    }).then((result) => {
       if (!result.success) {
         if (result.successCount > 0) {
           toast.warning(
@@ -84,22 +81,15 @@ export function UploadPhotosDialog({
         } else {
           toast.error("Failed to upload photos");
         }
-        return;
+      } else {
+        toast.success("Photos uploaded!", "We're detecting items from your photos. This may take some time — please refresh the page in a few moments to see updates.");
+        onUploadComplete?.();
       }
-
-      toast.success("Photos uploaded! We're now detecting items from your photos. This may take a moment.");
-      uploadedFiles.forEach((f) => URL.revokeObjectURL(f.url));
-      setUploadedFiles([]);
-      onUploadComplete?.();
-      onOpenChange(false);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to upload photos";
-      toast.error(errorMessage);
-    } finally {
-      setIsUploading(false);
-      setProgress(null);
-    }
+    }).catch(() => {
+      toast.error("Failed to upload photos", "An unexpected error occurred.");
+    }).finally(() => {
+      uploadingRef.current = false;
+    });
   };
 
   const handleCancel = () => {
@@ -123,30 +113,22 @@ export function UploadPhotosDialog({
       footer={
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2 text-sm">
-            {progress ? (
-              <span className="text-muted-foreground">{progress}</span>
-            ) : (
-              <>
-                <span className="font-medium text-foreground">Uploaded</span>
-                <span className="text-muted-foreground">
-                  {uploadedFiles.length}/{maxFiles}
-                </span>
-              </>
-            )}
+            <span className="font-medium text-foreground">Uploaded</span>
+            <span className="text-muted-foreground">
+              {uploadedFiles.length}/{maxFiles}
+            </span>
           </div>
           <div className="flex gap-3">
             <Button
               variant="secondary"
               onClick={handleCancel}
               className="bg-accent-border hover:bg-accent-border/80"
-              disabled={isUploading}
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpload}
-              disabled={uploadedFiles.length === 0 || isUploading}
-              loading={isUploading}
+              disabled={uploadedFiles.length === 0}
             >
               Upload Photos
             </Button>

@@ -216,11 +216,6 @@ export function DashboardCollectionsSection({
         cover_image_b64 = await convertImageToBase64(compressedCover);
       }
 
-      let loadingToast = toast.loading(
-        "Creating collection",
-        `Creating "${collectionName}"${photos.length > 0 ? ` and uploading ${photos.length} ${photos.length === 1 ? "photo" : "photos"}...` : "..."}`
-      );
-
       const result = await createCollection(
         property.id,
         unitId,
@@ -232,7 +227,6 @@ export function DashboardCollectionsSection({
       );
 
       if (!result.success) {
-        toast.dismiss(loadingToast);
         const message = result.message || "Something went wrong on our end. Please try again.";
         setCreationError(message);
         toast.error(`Failed to create collection`, message);
@@ -240,49 +234,47 @@ export function DashboardCollectionsSection({
       }
 
       const collectionId = result.data.id;
+      const photosToUpload = [...photos];
+      const uploadNotes = notes.trim() || " ";
+      const name = collectionName;
 
-      if (photos.length > 0) {
-        const uploadResult = await uploadPhotosInBatches(photos, {
-          collectionId,
-          unitId,
-          propertyId: property.id,
-          notes: notes.trim() || " ",
-          onProgress: ({ completed, total }) => {
-            loadingToast = toast.updateLoading(
-              loadingToast,
-              "Creating collection",
-              `Uploading photos... ${completed}/${total}`
-            );
-          },
-        });
-
-        if (!uploadResult.success) {
-          toast.dismiss(loadingToast);
-          if (uploadResult.successCount > 0) {
-            toast.warning(
-              `Collection "${collectionName}" created`,
-              `${uploadResult.successCount}/${photos.length} photos uploaded. Some batches failed.`
-            );
-          } else {
-            toast.error(
-              `Collection "${collectionName}" created but failed to upload photos`,
-              "Please try uploading photos again"
-            );
-          }
-        }
-      }
-
-      toast.dismiss(loadingToast);
       setSelectedCollection(result.data);
-      if (photos.length > 0) {
-        toast.success(`Collection "${collectionName}" created!`, "We're detecting items from your photos. This may take a moment.");
-      } else {
-        toast.success(`Collection "${collectionName}" created!`);
-      }
       setIsMultiStepModalOpen(false);
       router.push(
         ROUTES.DASHBOARD.COLLECTION(property.id, collectionId, unitId)
       );
+
+      if (photosToUpload.length > 0) {
+        toast.success(`Collection "${name}" created!`, "Uploading photos in the background...");
+
+        uploadPhotosInBatches(photosToUpload, {
+          collectionId,
+          unitId,
+          propertyId: property.id,
+          notes: uploadNotes,
+        }).then((uploadResult) => {
+          if (!uploadResult.success) {
+            if (uploadResult.successCount > 0) {
+              toast.warning(
+                `Upload partially complete`,
+                `${uploadResult.successCount}/${photosToUpload.length} photos uploaded. Some batches failed.`
+              );
+            } else {
+              toast.error(
+                `Failed to upload photos`,
+                "Please try uploading photos again."
+              );
+            }
+          } else {
+            toast.success("Photos uploaded!", "We're detecting items from your photos. This may take a moment.");
+          }
+        }).catch(() => {
+          toast.error("Failed to upload photos", "An unexpected error occurred. Please try again.");
+        });
+      } else {
+        toast.success(`Collection "${name}" created!`);
+      }
+
       return true;
     } catch (error) {
       const message = error instanceof Error

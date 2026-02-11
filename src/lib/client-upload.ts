@@ -3,6 +3,7 @@ import { getImpersonatedUserId } from "@/features/dashboard/utils/impersonation"
 import { API_ENDPOINTS } from "@/config/api";
 import { startDeduplication } from "@/features/collection-details/api/collection.actions";
 import type { ActionResult } from "@/lib/fetch-with-auth";
+import { useUploadProgressStore } from "@/stores/upload-progress-store";
 
 // --- Image Compression ---
 
@@ -182,58 +183,69 @@ export async function uploadPhotosInBatches(
   const totalBatches = Math.ceil(files.length / BATCH_SIZE);
   const url = API_ENDPOINTS.PROPERTIES.UPLOADS(propertyId, unitId, collectionId);
 
+  const progressStore = useUploadProgressStore.getState();
+  progressStore.startUpload(files.length);
+
   let successCount = 0;
   const failedBatches: number[] = [];
 
-  for (let i = 0; i < totalBatches; i++) {
-    const batchFiles = files.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
+  try {
+    for (let i = 0; i < totalBatches; i++) {
+      const batchFiles = files.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
 
-    // Compress and convert each image sequentially within batch to limit memory
-    const photosB64: string[] = [];
-    for (const file of batchFiles) {
-      const compressed = await compressImage(file);
-      const base64 = await blobToBase64(compressed);
-      photosB64.push(base64);
+      // Compress and convert each image sequentially within batch to limit memory
+      const photosB64: string[] = [];
+      for (const file of batchFiles) {
+        const compressed = await compressImage(file);
+        const base64 = await blobToBase64(compressed);
+        photosB64.push(base64);
+      }
+
+      const result = await clientFetchWithAuth(url, {
+        method: "POST",
+        body: {
+          notes,
+          photos_b64: photosB64,
+        },
+      });
+
+      if (result.success) {
+        successCount += batchFiles.length;
+      } else {
+        failedBatches.push(i);
+      }
+
+      // Clear references to allow GC
+      photosB64.length = 0;
+
+      const completed = Math.min((i + 1) * BATCH_SIZE, files.length);
+
+      useUploadProgressStore.getState().setProgress(completed, files.length);
+
+      onProgress?.({
+        completed,
+        total: files.length,
+        batchIndex: i,
+        totalBatches,
+      });
+
+      // Yield to allow GC between batches
+      if (i < totalBatches - 1) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
     }
 
-    const result = await clientFetchWithAuth(url, {
-      method: "POST",
-      body: {
-        notes,
-        photos_b64: photosB64,
-      },
-    });
-
-    if (result.success) {
-      successCount += batchFiles.length;
-    } else {
-      failedBatches.push(i);
+    // Start deduplication after all batches
+    if (successCount > 0) {
+      startDeduplication(propertyId, unitId, collectionId);
     }
 
-    // Clear references to allow GC
-    photosB64.length = 0;
-
-    onProgress?.({
-      completed: Math.min((i + 1) * BATCH_SIZE, files.length),
-      total: files.length,
-      batchIndex: i,
-      totalBatches,
-    });
-
-    // Yield to allow GC between batches
-    if (i < totalBatches - 1) {
-      await new Promise((r) => setTimeout(r, 50));
-    }
+    return {
+      success: failedBatches.length === 0,
+      successCount,
+      failedBatches,
+    };
+  } finally {
+    useUploadProgressStore.getState().finishUpload();
   }
-
-  // Start deduplication after all batches
-  if (successCount > 0) {
-    startDeduplication(propertyId, unitId, collectionId);
-  }
-
-  return {
-    success: failedBatches.length === 0,
-    successCount,
-    failedBatches,
-  };
 }

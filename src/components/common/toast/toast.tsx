@@ -108,8 +108,23 @@ export const toast = {
   },
 
   updateLoading: (toastId: string | number, message: string, description?: string) => {
-    sonnerToast.dismiss(toastId);
-    return toast.loading(message, description);
+    sonnerToast.custom(
+      (id) => (
+        <BaseToast
+          id={id}
+          icon={
+            <Loader2Icon
+              style={{ color: "var(--primary-toast)" }}
+              className="size-4 animate-spin"
+            />
+          }
+          message={message}
+          description={description}
+        />
+      ),
+      { id: toastId, duration: Infinity }
+    );
+    return toastId;
   },
 
   dismiss: (toastId?: string | number) => {
