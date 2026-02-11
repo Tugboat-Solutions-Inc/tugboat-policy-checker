@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/button";
 import { UploadImageDropzone } from "@/components/common/upload-image/upload-image-dropzone";
 import { UploadImageMultiple } from "@/components/common/upload-image/upload-image-multiple";
 import type { UploadedFile } from "@/components/common/upload-image/upload-image";
-import { createUpload } from "@/features/collection-details/api/upload.actions";
-import { startDeduplication } from "@/features/collection-details/api/collection.actions";
-import { convertImageToBase64 } from "@/lib/utils";
+import { uploadPhotosInBatches } from "@/lib/client-upload";
 import { toast } from "@/components/common/toast/toast";
 
 interface UploadPhotosDialogProps {
@@ -36,6 +34,7 @@ export function UploadPhotosDialog({
 }: UploadPhotosDialogProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
 
   const handleFilesSelected = useCallback((files: File[]) => {
     const newFiles: UploadedFile[] = files.map((file) => ({
@@ -62,30 +61,31 @@ export function UploadPhotosDialog({
     if (isUploading || uploadedFiles.length === 0) return;
 
     setIsUploading(true);
+    setProgress(null);
     try {
       const photos = uploadedFiles.map((f) => f.file).filter(Boolean) as File[];
 
-      const photosBase64 = await Promise.all(
-        photos.map(async (photo) => {
-          const base64 = await convertImageToBase64(photo);
-          if (!base64) {
-            throw new Error(`Failed to convert photo to base64: ${photo.name}`);
-          }
-          return base64;
-        })
-      );
-
-      const response = await createUpload(collectionId, unitId, propertyId, {
+      const result = await uploadPhotosInBatches(photos, {
+        collectionId,
+        unitId,
+        propertyId,
         notes: " ",
-        photos_b64: photosBase64,
+        onProgress: ({ completed, total }) => {
+          setProgress(`Uploading ${completed}/${total} photos...`);
+        },
       });
 
-      if (!response.success) {
-        toast.error(response.message || "Failed to upload photos");
+      if (!result.success) {
+        if (result.successCount > 0) {
+          toast.warning(
+            `${result.successCount}/${photos.length} photos uploaded`,
+            "Some batches failed. Please try uploading the remaining photos again."
+          );
+        } else {
+          toast.error("Failed to upload photos");
+        }
         return;
       }
-
-      startDeduplication(propertyId, unitId, collectionId);
 
       toast.success("Photos uploaded! We're now detecting items from your photos. This may take a moment.");
       uploadedFiles.forEach((f) => URL.revokeObjectURL(f.url));
@@ -98,6 +98,7 @@ export function UploadPhotosDialog({
       toast.error(errorMessage);
     } finally {
       setIsUploading(false);
+      setProgress(null);
     }
   };
 
@@ -122,10 +123,16 @@ export function UploadPhotosDialog({
       footer={
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium text-foreground">Uploaded</span>
-            <span className="text-muted-foreground">
-              {uploadedFiles.length}/{maxFiles}
-            </span>
+            {progress ? (
+              <span className="text-muted-foreground">{progress}</span>
+            ) : (
+              <>
+                <span className="font-medium text-foreground">Uploaded</span>
+                <span className="text-muted-foreground">
+                  {uploadedFiles.length}/{maxFiles}
+                </span>
+              </>
+            )}
           </div>
           <div className="flex gap-3">
             <Button

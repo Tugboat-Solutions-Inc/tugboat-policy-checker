@@ -27,15 +27,14 @@ import { Property } from "@/features/auth/schemas/property.schemas";
 import {
   createCollection,
   updateCollectionFavorite,
-  startDeduplication,
 } from "@/features/collection-details/api/collection.actions";
-import { createUpload } from "@/features/collection-details/api/upload.actions";
 import {
   convertImageToBase64,
   formatCurrencyAbbreviated,
   getFirstUnitId,
   hasUnits,
 } from "@/lib/utils";
+import { uploadPhotosInBatches, compressImage } from "@/lib/client-upload";
 import { useSelectedCollectionStore } from "@/stores/selected-collection-store";
 import { useCollectionFavoritesStore } from "@/stores/collection-favorites-store";
 
@@ -211,9 +210,13 @@ export function DashboardCollectionsSection({
         return false;
       }
 
-      const cover_image_b64 = await convertImageToBase64(coverImageFile);
+      let cover_image_b64: string | null = null;
+      if (coverImageFile) {
+        const compressedCover = await compressImage(coverImageFile);
+        cover_image_b64 = await convertImageToBase64(compressedCover);
+      }
 
-      const loadingToast = toast.loading(
+      let loadingToast = toast.loading(
         "Creating collection",
         `Creating "${collectionName}"${photos.length > 0 ? ` and uploading ${photos.length} ${photos.length === 1 ? "photo" : "photos"}...` : "..."}`
       );
@@ -239,36 +242,33 @@ export function DashboardCollectionsSection({
       const collectionId = result.data.id;
 
       if (photos.length > 0) {
-        const photosBase64 = await Promise.all(
-          photos.map(async (photo) => {
-            const base64 = await convertImageToBase64(photo);
-            if (!base64) {
-              throw new Error(
-                `Failed to convert photo to base64: ${photo.name}`
-              );
-            }
-            return base64;
-          })
-        );
-
-        const uploadResult = await createUpload(
+        const uploadResult = await uploadPhotosInBatches(photos, {
           collectionId,
           unitId,
-          property.id,
-          {
-            notes: notes.trim() || " ",
-            photos_b64: photosBase64,
-          }
-        );
+          propertyId: property.id,
+          notes: notes.trim() || " ",
+          onProgress: ({ completed, total }) => {
+            loadingToast = toast.updateLoading(
+              loadingToast,
+              "Creating collection",
+              `Uploading photos... ${completed}/${total}`
+            );
+          },
+        });
 
         if (!uploadResult.success) {
           toast.dismiss(loadingToast);
-          toast.error(
-            `Collection "${collectionName}" created but failed to upload photos`,
-            uploadResult.message || "Please try uploading photos again"
-          );
-        } else {
-          startDeduplication(property.id, unitId, collectionId);
+          if (uploadResult.successCount > 0) {
+            toast.warning(
+              `Collection "${collectionName}" created`,
+              `${uploadResult.successCount}/${photos.length} photos uploaded. Some batches failed.`
+            );
+          } else {
+            toast.error(
+              `Collection "${collectionName}" created but failed to upload photos`,
+              "Please try uploading photos again"
+            );
+          }
         }
       }
 

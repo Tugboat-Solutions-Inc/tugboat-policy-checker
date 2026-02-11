@@ -200,7 +200,7 @@ export function getRoleLabel(
 }
 
 export async function convertImageToBase64(
-  image: File | string | null | undefined
+  image: File | Blob | string | null | undefined
 ): Promise<string | null> {
   if (!image) return null;
 

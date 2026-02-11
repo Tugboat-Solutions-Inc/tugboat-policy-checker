@@ -107,6 +107,11 @@ export const toast = {
     );
   },
 
+  updateLoading: (toastId: string | number, message: string, description?: string) => {
+    sonnerToast.dismiss(toastId);
+    return toast.loading(message, description);
+  },
+
   dismiss: (toastId?: string | number) => {
     return sonnerToast.dismiss(toastId);
   },
