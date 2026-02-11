@@ -4,6 +4,7 @@ import { CollectionDetailsHeader } from "@/features/collection-details/component
 import { ItemsTable } from "@/features/collection-details/components/items-table/items-table";
 import { CollectionDetailsSkeleton } from "@/features/collection-details/components/collection-details-skeleton";
 import { DuplicatesSection } from "@/features/collection-details/components/duplicates-section";
+import { UploadProgressPill } from "@/components/common/upload-progress-pill";
 import { getCachedPropertyById, getCachedCollectionById } from "@/lib/cached-fetchers";
 import { getItems } from "@/features/collection-details/api/item.actions";
 import { getBrands } from "@/features/collection-details/api/brand.actions";
@@ -68,6 +69,9 @@ async function CollectionContent({
         unitId={unitId}
         collectionId={collectionId}
       />
+      <div className="px-2.5">
+        <UploadProgressPill />
+      </div>
       <div className="flex-1 min-h-0 px-2.5 pb-2.5">
         <ItemsTable
           propertyId={propertyId}

@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { TugboatModal } from "@/components/common/tugboat-modal/tugboat-modal";
 import { Button } from "@/components/ui/button";
 import { UploadImageDropzone } from "@/components/common/upload-image/upload-image-dropzone";
 import { UploadImageMultiple } from "@/components/common/upload-image/upload-image-multiple";
 import type { UploadedFile } from "@/components/common/upload-image/upload-image";
-import { createUpload } from "@/features/collection-details/api/upload.actions";
-import { startDeduplication } from "@/features/collection-details/api/collection.actions";
-import { convertImageToBase64 } from "@/lib/utils";
+import { uploadPhotosInBatches } from "@/lib/client-upload";
 import { toast } from "@/components/common/toast/toast";
 
 interface UploadPhotosDialogProps {
@@ -35,7 +33,7 @@ export function UploadPhotosDialog({
   onUploadComplete,
 }: UploadPhotosDialogProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const uploadingRef = useRef(false);
 
   const handleFilesSelected = useCallback((files: File[]) => {
     const newFiles: UploadedFile[] = files.map((file) => ({
@@ -58,47 +56,40 @@ export function UploadPhotosDialog({
     [uploadedFiles]
   );
 
-  const handleUpload = async () => {
-    if (isUploading || uploadedFiles.length === 0) return;
+  const handleUpload = () => {
+    if (uploadingRef.current || uploadedFiles.length === 0) return;
+    uploadingRef.current = true;
 
-    setIsUploading(true);
-    try {
-      const photos = uploadedFiles.map((f) => f.file).filter(Boolean) as File[];
+    const photos = uploadedFiles.map((f) => f.file).filter(Boolean) as File[];
 
-      const photosBase64 = await Promise.all(
-        photos.map(async (photo) => {
-          const base64 = await convertImageToBase64(photo);
-          if (!base64) {
-            throw new Error(`Failed to convert photo to base64: ${photo.name}`);
-          }
-          return base64;
-        })
-      );
+    uploadedFiles.forEach((f) => URL.revokeObjectURL(f.url));
+    setUploadedFiles([]);
+    onOpenChange(false);
 
-      const response = await createUpload(collectionId, unitId, propertyId, {
-        notes: " ",
-        photos_b64: photosBase64,
-      });
-
-      if (!response.success) {
-        toast.error(response.message || "Failed to upload photos");
-        return;
+    uploadPhotosInBatches(photos, {
+      collectionId,
+      unitId,
+      propertyId,
+      notes: " ",
+    }).then((result) => {
+      if (!result.success) {
+        if (result.successCount > 0) {
+          toast.warning(
+            `${result.successCount}/${photos.length} photos uploaded`,
+            "Some batches failed. Please try uploading the remaining photos again."
+          );
+        } else {
+          toast.error("Failed to upload photos");
+        }
+      } else {
+        toast.success("Photos uploaded!", "We're detecting items from your photos. This may take some time — please refresh the page in a few moments to see updates.", 5000);
+        onUploadComplete?.();
       }
-
-      startDeduplication(propertyId, unitId, collectionId);
-
-      toast.success("Photos uploaded! We're now detecting items from your photos. This may take a moment.");
-      uploadedFiles.forEach((f) => URL.revokeObjectURL(f.url));
-      setUploadedFiles([]);
-      onUploadComplete?.();
-      onOpenChange(false);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to upload photos";
-      toast.error(errorMessage);
-    } finally {
-      setIsUploading(false);
-    }
+    }).catch(() => {
+      toast.error("Failed to upload photos", "An unexpected error occurred.");
+    }).finally(() => {
+      uploadingRef.current = false;
+    });
   };
 
   const handleCancel = () => {
@@ -132,14 +123,12 @@ export function UploadPhotosDialog({
               variant="secondary"
               onClick={handleCancel}
               className="bg-accent-border hover:bg-accent-border/80"
-              disabled={isUploading}
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpload}
-              disabled={uploadedFiles.length === 0 || isUploading}
-              loading={isUploading}
+              disabled={uploadedFiles.length === 0}
             >
               Upload Photos
             </Button>

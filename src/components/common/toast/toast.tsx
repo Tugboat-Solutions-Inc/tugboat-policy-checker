@@ -12,7 +12,7 @@ const TOAST_DURATION = 3000;
 const TOAST_ERROR_DURATION = 5000;
 
 export const toast = {
-  success: (message: string, description?: string) => {
+  success: (message: string, description?: string, duration?: number) => {
     return sonnerToast.custom(
       (id) => (
         <BaseToast
@@ -27,7 +27,7 @@ export const toast = {
           description={description}
         />
       ),
-      { duration: TOAST_DURATION }
+      { duration: duration ?? TOAST_DURATION }
     );
   },
 
@@ -105,6 +105,26 @@ export const toast = {
       ),
       { duration: Infinity }
     );
+  },
+
+  updateLoading: (toastId: string | number, message: string, description?: string) => {
+    sonnerToast.custom(
+      (id) => (
+        <BaseToast
+          id={id}
+          icon={
+            <Loader2Icon
+              style={{ color: "var(--primary-toast)" }}
+              className="size-4 animate-spin"
+            />
+          }
+          message={message}
+          description={description}
+        />
+      ),
+      { id: toastId, duration: Infinity }
+    );
+    return toastId;
   },
 
   dismiss: (toastId?: string | number) => {

@@ -4,6 +4,7 @@ import { CollectionDetailsHeader } from "@/features/collection-details/component
 import { ItemsTable } from "@/features/collection-details/components/items-table/items-table";
 import { CollectionDetailsSkeleton } from "@/features/collection-details/components/collection-details-skeleton";
 import { DuplicatesSection } from "@/features/collection-details/components/duplicates-section";
+import { UploadProgressPill } from "@/components/common/upload-progress-pill";
 import { getCachedCollectionById } from "@/lib/cached-fetchers";
 import { getItems } from "@/features/collection-details/api/item.actions";
 import { getBrands } from "@/features/collection-details/api/brand.actions";
@@ -148,6 +149,9 @@ async function CollectionContent({
             unitId={unitId}
           />
         </Suspense>
+      </div>
+      <div className="px-2.5">
+        <UploadProgressPill />
       </div>
       <Suspense fallback={<CollectionItemsSkeleton />}>
         <CollectionItems
