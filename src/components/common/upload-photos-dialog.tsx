@@ -82,7 +82,7 @@ export function UploadPhotosDialog({
           toast.error("Failed to upload photos");
         }
       } else {
-        toast.success("Photos uploaded!", "We're detecting items from your photos. This may take some time — please refresh the page in a few moments to see updates.");
+        toast.success("Photos uploaded!", "We're detecting items from your photos. This may take some time — please refresh the page in a few moments to see updates.", 5000);
         onUploadComplete?.();
       }
     }).catch(() => {

@@ -9,11 +9,16 @@ export function UploadProgressPill() {
   if (!isUploading) return null;
 
   return (
-    <div className="flex items-center gap-2 rounded-full bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm border border-border">
-      <Loader2Icon className="size-4 animate-spin" />
-      <span>
-        Uploading {completed}/{total} photos...
-      </span>
+    <div className="flex items-center gap-3 bg-primary/10 rounded-[10px] px-4 py-3 w-full mt-2.5 mb-0.5">
+      <Loader2Icon size={20} className="text-primary animate-spin shrink-0" />
+      <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+        <p className="font-semibold text-base text-foreground leading-none">
+          Uploading {completed}/{total} photos
+        </p>
+        <p className="text-sm text-muted-foreground leading-none">
+          We're detecting items from your photos. This may take some time — please refresh after a few moments.
+        </p>
+      </div>
     </div>
   );
 }

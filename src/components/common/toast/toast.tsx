@@ -12,7 +12,7 @@ const TOAST_DURATION = 3000;
 const TOAST_ERROR_DURATION = 5000;
 
 export const toast = {
-  success: (message: string, description?: string) => {
+  success: (message: string, description?: string, duration?: number) => {
     return sonnerToast.custom(
       (id) => (
         <BaseToast
@@ -27,7 +27,7 @@ export const toast = {
           description={description}
         />
       ),
-      { duration: TOAST_DURATION }
+      { duration: duration ?? TOAST_DURATION }
     );
   },
 
