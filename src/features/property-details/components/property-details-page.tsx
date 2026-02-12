@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition, useRef, lazy, Suspense } from "react";
+import { useState, useMemo, useCallback, useTransition, useRef, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { PropertyDetailsHeader } from "./property-details-header";
 import { PropertyOverviewSection } from "./property-overview-section";
@@ -104,9 +104,9 @@ export function PropertyDetailsPage({
     handleLeave,
   } = useUnsavedChanges({ hasUnsavedChanges });
 
-  function handleFormStateChange(_isValid: boolean, values: PropertySetupFormValues) {
+  const handleFormStateChange = useCallback((_isValid: boolean, values: PropertySetupFormValues) => {
     setFormValues(values);
-  }
+  }, []);
 
   function handleRoleChange(userId: string, newRole: AccessType) {
     setAccessState((prev) =>
