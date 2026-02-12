@@ -154,11 +154,13 @@ export function PropertyDetailsPage({
             })
             .filter(Boolean) as { access_id: string; new_access_type: AccessType }[];
 
-          await Promise.all(
+          const accessResults = await Promise.all(
             changedAccess.map((c) =>
               updatePropertyAccess(currentProperty.id, c.access_id, c.new_access_type)
             )
           );
+          const failedResult = accessResults.find((r) => !r.success);
+          if (failedResult) throw new Error(failedResult.message || "Failed to update property access");
         }
 
         const propertyResult = await getPropertyById(currentProperty.id);
