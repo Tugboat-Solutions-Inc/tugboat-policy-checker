@@ -8,7 +8,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 export const metadata: Metadata = {
   title: { default: "Tugboat", template: "%s | Tugboat" },
   description:
-    "Document every asset, stay organized, and streamline insurance claims",
+    "A living record of your belongings",
   other: {
     "font-stylesheet": "/fonts/switzer/css/switzer.css",
   },

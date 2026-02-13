@@ -12,7 +12,7 @@ export default function WelcomePage() {
       <div className="space-y-6 md:space-y-10">
         <AuthIntroSection
           title="Welcome to Tugboat"
-          description="Document every asset, stay organized, and streamline insurance claims"
+          description="A living record of your belongings"
         />
         <div className="space-y-6 md:space-y-8">
           <AuthSocialLoginSection />
