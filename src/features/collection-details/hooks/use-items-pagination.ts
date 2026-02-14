@@ -144,7 +144,7 @@ export function useItemsPagination({
 
   const debouncedSearchValue = useDebounce(searchValue.trim(), 500);
 
-  const pageSize = 10;
+  const pageSize = 100;
   const pageCacheRef = useRef<Map<string, CachedPage>>(new Map());
   const previousSearchRef = useRef<string | null>(null);
   const previousFiltersRef = useRef<string | null>(null);

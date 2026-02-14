@@ -76,7 +76,7 @@ async function CollectionItems({
     await Promise.all([
     getCachedCollectionById(propertyId, collectionId, unitId),
     getItems(propertyId, unitId, collectionId, {
-      limit: 10,
+      limit: 100,
       page: 1,
     }),
     getBrands(propertyId, unitId),
@@ -102,7 +102,7 @@ async function CollectionItems({
       initialCategories={categories}
       initialPagination={{
         currentPage: itemsData?.current_page ?? 1,
-        pageSize: itemsData?.page_size ?? 10,
+        pageSize: itemsData?.page_size ?? 100,
         totalPages: itemsData?.total_pages ?? 1,
         totalItems: itemsData?.total_items ?? 0,
       }}

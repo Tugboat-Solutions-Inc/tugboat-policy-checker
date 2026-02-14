@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getUserOrgRole } from "@/lib/auth";
-import { DuplicatesAlert } from "@/components/common/alerts/duplicates-alert";
 import { DashboardCollectionsSection } from "@/features/dashboard/components/dashboard-collections-section";
 import { DashboardLastUploadsSection } from "@/features/dashboard/components/dashboard-last-uploads-section";
 import { IndividualPropertyKpisSection } from "@/features/individual-dashboard/components/individual-property-kpis-section";
@@ -76,10 +75,6 @@ async function MemberPropertyContent({ propertyId }: { propertyId: string }) {
     collectionsCount: collections.length,
   };
 
-  const hasDuplicates = collections.some(
-    (collection) => collection.duplicates_detected
-  );
-
   return (
     <>
       <SelectedPropertyStoreInitializer propertyId={propertyId} />
@@ -93,14 +88,6 @@ async function MemberPropertyContent({ propertyId }: { propertyId: string }) {
           />
           <IndividualPropertyKpisSection kpis={kpis} />
         </div>
-        {hasDuplicates ? (
-          <div className="px-6">
-            <DuplicatesAlert
-              title="Possible duplicates detected"
-              description="Choose a collection to review and clean."
-            />
-          </div>
-        ) : null}
         <DashboardCollectionsSection
           collections={collections}
           property={property}
