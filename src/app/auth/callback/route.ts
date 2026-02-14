@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
     searchParams.get("token_hash") || searchParams.get("token");
   const type = searchParams.get("type");
   const next = searchParams.get("next");
+  const adminInvite =
+    searchParams.get("adminInvite") || searchParams.get("admin_invite");
+  const retool = searchParams.get("retool");
 
   const pendingCookies: {
     name: string;
@@ -84,7 +87,11 @@ export async function GET(request: NextRequest) {
       : null;
 
     if (!decodedToken?.onboarding_complete) {
-      redirectUrl = `${origin}${ROUTES.AUTH.SIGNUP_VERIFIED}`;
+      const verifiedParams = new URLSearchParams();
+      if (adminInvite) verifiedParams.set("adminInvite", "true");
+      if (retool === "true") verifiedParams.set("retool", "true");
+      const qs = verifiedParams.toString();
+      redirectUrl = `${origin}${ROUTES.AUTH.SIGNUP_VERIFIED}${qs ? `?${qs}` : ""}`;
     } else {
       redirectUrl = `${origin}${next || ROUTES.DASHBOARD.ROOT}`;
     }
