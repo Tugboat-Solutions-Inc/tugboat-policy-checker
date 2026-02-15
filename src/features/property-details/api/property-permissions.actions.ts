@@ -7,7 +7,11 @@ import {
   ROLE_CAPABILITIES,
 } from "@/constants/permissions.constants";
 import { getUserCapabilities } from "@/lib/permissions";
-import { getCachedPropertyAccess, getCachedUser } from "@/lib/cached-fetchers";
+import {
+  getCachedPropertyAccess,
+  getCachedPropertyById,
+  getCachedUser,
+} from "@/lib/cached-fetchers";
 import { createClient } from "@/utils/supabase/server";
 import { decodeAccessToken } from "@/lib/jwt";
 
@@ -31,12 +35,15 @@ export async function getPropertyPermissions(
     const currentOrg = decoded?.orgs?.[0];
 
     const isClient = currentOrg?.is_client === true;
-    
+
     if (!isClient && (currentOrg?.owner || currentOrg?.role === "ADMIN")) {
-      return {
-        success: true,
-        data: ROLE_CAPABILITIES.EDITOR,
-      };
+      const propertyResult = await getCachedPropertyById(propertyId);
+      if (propertyResult.success && propertyResult.data.owner_id === decoded.sub) {
+        return {
+          success: true,
+          data: ROLE_CAPABILITIES.EDITOR,
+        };
+      }
     }
 
     const [propertyAccess, user] = await Promise.all([
@@ -59,10 +66,8 @@ export async function getPropertyPermissions(
     }
 
     let capabilities = getUserCapabilities(propertyAccess.data, user.data.id);
-    
-    if (isClient) {
-      capabilities = capabilities.filter(cap => cap !== CAPABILITIES.MANAGE_USERS);
-    }
+
+    capabilities = capabilities.filter(cap => cap !== CAPABILITIES.MANAGE_USERS);
 
     return {
       success: true,
