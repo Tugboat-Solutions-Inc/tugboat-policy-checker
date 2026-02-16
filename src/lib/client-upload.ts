@@ -7,9 +7,9 @@ import { useUploadProgressStore } from "@/stores/upload-progress-store";
 
 // --- Image Compression ---
 
-const MAX_DIMENSION = 2048;
+const MAX_DIMENSION = 1920;
 const JPEG_QUALITY = 0.8;
-const SKIP_COMPRESSION_THRESHOLD = 500 * 1024; // 500KB
+const SKIP_COMPRESSION_THRESHOLD = 200 * 1024; // 200KB
 
 export async function compressImage(file: File): Promise<Blob> {
   if (file.size <= SKIP_COMPRESSION_THRESHOLD) {
@@ -150,9 +150,7 @@ export async function clientFetchWithAuth<T>(
   }
 }
 
-// --- Batch Upload ---
-
-const BATCH_SIZE = 5;
+// --- Upload ---
 
 export type BatchUploadProgress = {
   completed: number;
@@ -180,70 +178,45 @@ export async function uploadPhotosInBatches(
   config: BatchUploadConfig
 ): Promise<BatchUploadResult> {
   const { collectionId, unitId, propertyId, notes, onProgress } = config;
-  const totalBatches = Math.ceil(files.length / BATCH_SIZE);
   const url = API_ENDPOINTS.PROPERTIES.UPLOADS(propertyId, unitId, collectionId);
 
   const progressStore = useUploadProgressStore.getState();
   progressStore.startUpload(files.length);
 
-  let successCount = 0;
-  const failedBatches: number[] = [];
-
   try {
-    for (let i = 0; i < totalBatches; i++) {
-      const batchFiles = files.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
+    // Compress and convert each image sequentially to limit memory
+    const photosB64: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const compressed = await compressImage(files[i]);
+      const base64 = await blobToBase64(compressed);
+      photosB64.push(base64);
 
-      // Compress and convert each image sequentially within batch to limit memory
-      const photosB64: string[] = [];
-      for (const file of batchFiles) {
-        const compressed = await compressImage(file);
-        const base64 = await blobToBase64(compressed);
-        photosB64.push(base64);
-      }
-
-      const result = await clientFetchWithAuth(url, {
-        method: "POST",
-        body: {
-          notes,
-          photos_b64: photosB64,
-        },
-      });
-
-      if (result.success) {
-        successCount += batchFiles.length;
-      } else {
-        failedBatches.push(i);
-      }
-
-      // Clear references to allow GC
-      photosB64.length = 0;
-
-      const completed = Math.min((i + 1) * BATCH_SIZE, files.length);
-
-      useUploadProgressStore.getState().setProgress(completed, files.length);
+      useUploadProgressStore.getState().setProgress(i + 1, files.length);
 
       onProgress?.({
-        completed,
+        completed: i + 1,
         total: files.length,
-        batchIndex: i,
-        totalBatches,
+        batchIndex: 0,
+        totalBatches: 1,
       });
-
-      // Yield to allow GC between batches
-      if (i < totalBatches - 1) {
-        await new Promise((r) => setTimeout(r, 50));
-      }
     }
 
-    // Start deduplication after all batches
-    if (successCount > 0) {
+    const result = await clientFetchWithAuth(url, {
+      method: "POST",
+      body: {
+        notes,
+        photos_b64: photosB64,
+      },
+    });
+
+    if (result.success) {
       startDeduplication(propertyId, unitId, collectionId);
     }
 
     return {
-      success: failedBatches.length === 0,
-      successCount,
-      failedBatches,
+      success: result.success,
+      successCount: result.success ? files.length : 0,
+      failedBatches: result.success ? [] : [0],
     };
   } finally {
     useUploadProgressStore.getState().finishUpload();

@@ -45,9 +45,13 @@ export function ImageWithBoundingBoxes({
     return () => observer.disconnect();
   }, []);
 
-  const handleImageLoad = useCallback((img: HTMLImageElement) => {
-    setImageSize({ width: img.naturalWidth, height: img.naturalHeight });
-  }, []);
+  const handleImageLoad = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const img = e.currentTarget;
+      setImageSize({ width: img.naturalWidth, height: img.naturalHeight });
+    },
+    []
+  );
 
   let boundingBoxElement: React.ReactNode = null;
 
@@ -122,19 +126,20 @@ export function ImageWithBoundingBoxes({
       );
     };
 
+    // Standard [x1, y1, x2, y2] pixel coordinates (left, top, right, bottom)
     const x1 = boundingBoxes[0];
-    const x2 = boundingBoxes[1];
-    const y1 = boundingBoxes[2];
+    const y1 = boundingBoxes[1];
+    const x2 = boundingBoxes[2];
     const y2 = boundingBoxes[3];
 
     boundingBoxElement = makeBox({
-          color: "#22c55e",
-        zIndex: 10,
-      xMin: iw - x2,
-      xMax: iw - x1,
+      color: "#ef4444",
+      zIndex: 10,
+      xMin: x1,
+      xMax: x2,
       yMin: y1,
       yMax: y2,
-      });
+    });
   }
 
   return (
@@ -146,8 +151,9 @@ export function ImageWithBoundingBoxes({
         src={imageUrl}
         alt={alt}
         fill
+        unoptimized
         className="object-contain"
-        onLoadingComplete={handleImageLoad}
+        onLoad={handleImageLoad}
         priority
       />
       {boundingBoxElement}

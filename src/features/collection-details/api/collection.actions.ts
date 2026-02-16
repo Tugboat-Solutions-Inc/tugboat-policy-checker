@@ -158,7 +158,7 @@ export async function resolveDuplicationGroup(
   );
 
   if (result.success) {
-    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId), "layout");
     revalidatePath(ROUTES.DASHBOARD.COLLECTION(propertyId, collectionId, unitId));
   }
 

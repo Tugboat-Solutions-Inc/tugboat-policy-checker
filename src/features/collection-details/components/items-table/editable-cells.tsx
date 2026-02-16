@@ -316,7 +316,7 @@ export const CONDITION_OPTIONS: { value: ItemCondition; label: string }[] = [
 ];
 
 export const CONDITION_STYLES: Record<ItemCondition, string> = {
-  good: "bg-orange-400/10 text-orange-400 border-orange-400/10",
+  good: "bg-[rgba(113,202,17,0.1)] text-[#71CA11] border-[rgba(113,202,17,0.1)]",
   fair: "bg-slate-400/10 text-slate-400 border-slate-400/10",
   new: "bg-blue-400/10 text-blue-400 border-blue-400/10",
 };

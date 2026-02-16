@@ -11,6 +11,7 @@ import type { Item } from "../types/item.types";
 import { resolveDuplicationGroup } from "../api/collection.actions";
 import { toast } from "@/components/common/toast/toast";
 import { env } from "@/lib/env";
+import { ImageEnlargeDialog } from "./items-table/image-enlarge-dialog";
 
 interface ResolveDuplicatesDialogProps {
   open: boolean;
@@ -40,6 +41,11 @@ export function ResolveDuplicatesDialog({
   >(null);
   const [showRemoveAllDialog, setShowRemoveAllDialog] = useState(false);
   const [showKeepAllDialog, setShowKeepAllDialog] = useState(false);
+  const [enlargedImage, setEnlargedImage] = useState<{
+    url: string;
+    alt: string;
+    boundingBoxes: number[] | null;
+  } | null>(null);
   const [resolvedGroupIds, setResolvedGroupIds] = useState<Set<string>>(
     new Set()
   );
@@ -79,6 +85,13 @@ export function ResolveDuplicatesDialog({
       }
     },
     [onOpenChange, resolvedGroupIds.size, onResolved]
+  );
+
+  const handleImageClick = useCallback(
+    (imageUrl: string, itemName: string, boundingBoxes: number[] | null) => {
+      setEnlargedImage({ url: imageUrl, alt: itemName, boundingBoxes });
+    },
+    []
   );
 
   const toggleItemSelection = useCallback((itemId: string) => {
@@ -288,6 +301,7 @@ export function ResolveDuplicatesDialog({
                 item={item}
                 isSelected={selectedItemIds.has(item.id)}
                 onToggle={() => toggleItemSelection(item.id)}
+                onImageClick={handleImageClick}
                 disabled={isSubmitting}
               />
             ))}
@@ -338,6 +352,14 @@ export function ResolveDuplicatesDialog({
         isLoading={loadingAction === "keepAll"}
         variant="default"
       />
+
+      <ImageEnlargeDialog
+        open={!!enlargedImage}
+        onOpenChange={(open) => !open && setEnlargedImage(null)}
+        imageUrl={enlargedImage?.url ?? null}
+        alt={enlargedImage?.alt}
+        boundingBoxes={enlargedImage?.boundingBoxes ?? null}
+      />
     </TugboatModal>
   );
 }
@@ -346,6 +368,11 @@ interface DuplicateItemRowProps {
   item: Item;
   isSelected: boolean;
   onToggle: () => void;
+  onImageClick: (
+    imageUrl: string,
+    itemName: string,
+    boundingBoxes: number[] | null
+  ) => void;
   disabled?: boolean;
 }
 
@@ -353,6 +380,7 @@ function DuplicateItemRow({
   item,
   isSelected,
   onToggle,
+  onImageClick,
   disabled,
 }: DuplicateItemRowProps) {
   const fullImageUrl = item.photo_url
@@ -372,8 +400,20 @@ function DuplicateItemRow({
         }
       }}
     >
-      <div className="flex items-center gap-4 pointer-events-none">
-        <div className="w-20 h-20 rounded-md overflow-hidden shrink-0">
+      <div className="flex items-center gap-4">
+        <div
+          className="w-20 h-20 rounded-md overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (fullImageUrl) {
+              onImageClick(
+                fullImageUrl,
+                item.name || "Unnamed Item",
+                item.bounding_box
+              );
+            }
+          }}
+        >
           {fullImageUrl ? (
             <img
               src={fullImageUrl}
