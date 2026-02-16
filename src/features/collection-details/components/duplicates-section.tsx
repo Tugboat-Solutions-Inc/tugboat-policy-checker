@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DuplicatesAlert } from "@/components/common/alerts/duplicates-alert";
 import { ResolveDuplicatesDialog } from "./resolve-duplicates-dialog";
+import { usePermissions } from "@/components/common/permissions-provider";
+import { CAPABILITIES } from "@/constants/permissions.constants";
 import type { DuplicationGroup } from "../types/collection.types";
 
 export const ITEMS_CHANGED_EVENT = "items-changed";
@@ -23,6 +25,7 @@ export function DuplicatesSection({
 }: DuplicatesSectionProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
+  const { can } = usePermissions();
 
   const validDupeGroups = useMemo(() => {
     return dupeGroups.filter((group) => group.items && group.items.length > 0);
@@ -33,7 +36,7 @@ export function DuplicatesSection({
     router.refresh();
   };
 
-  if (validDupeGroups.length === 0) {
+  if (!can(CAPABILITIES.EDIT_COLLECTIONS) || validDupeGroups.length === 0) {
     return null;
   }
 

@@ -452,7 +452,7 @@ export function DashboardCollectionsSection({
                     image={collection.cover_image_url || ""}
                     title={collection.name}
                     itemCount={collection.total_items}
-                    duplicatesDetected={collection.duplicates_detected}
+                    duplicatesDetected={can(CAPABILITIES.EDIT_COLLECTIONS) && collection.duplicates_detected}
                     value={formatCurrencyAbbreviated(collection.total_value)}
                     isFavorite={collection.favorite}
                     onFavoriteToggle={(isFavorite) =>
