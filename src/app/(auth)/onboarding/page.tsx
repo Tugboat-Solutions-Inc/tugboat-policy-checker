@@ -22,6 +22,8 @@ export default function OnboardingIndividualPage() {
   const [activeTab, setActiveTab] = useState<"1" | "2">("1");
   const [nameData, setNameData] = useState<NameFormData | null>(null);
   const currentOrg = useCurrentOrg();
+  const isInvitedUser = currentOrg?.is_client === true;
+  const totalSteps = isInvitedUser ? 1 : 2;
   const steps = ["1", "2"];
   const currentStep = steps.indexOf(activeTab) + 1;
 
@@ -34,12 +36,15 @@ export default function OnboardingIndividualPage() {
   }
 
   async function handleCompleteOnboarding(
-    propertyData?: PropertySetupFormValues
+    propertyData?: PropertySetupFormValues,
+    nameOverride?: NameFormData
   ) {
+    const name = nameOverride ?? nameData;
+
     try {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         console.error("No session found during onboarding completion");
         toast.error("Session expired", "Please log in again");
@@ -47,14 +52,14 @@ export default function OnboardingIndividualPage() {
         return;
       }
 
-      if (!nameData) {
+      if (!name) {
         toast.error("Missing information", "Please fill in your name");
         return;
       }
 
       const result = await updateUser({
-        first_name: nameData.first_name,
-        last_name: nameData.last_name,
+        first_name: name.first_name,
+        last_name: name.last_name,
         settings: {
           notifications: {
             sms: true,
@@ -99,8 +104,12 @@ export default function OnboardingIndividualPage() {
     }
   }
 
-  function handleNameFormNext(data: NameFormData) {
+  async function handleNameFormNext(data: NameFormData) {
     setNameData(data);
+    if (isInvitedUser) {
+      await handleCompleteOnboarding(undefined, data);
+      return;
+    }
     setActiveTab("2");
   }
 
@@ -123,7 +132,7 @@ export default function OnboardingIndividualPage() {
             ? "Let's set up your profile."
             : "Add basic details to get started. You can always edit or add more properties later."
         }
-        totalSteps={2}
+        totalSteps={totalSteps}
         currentStep={currentStep}
       />
 
