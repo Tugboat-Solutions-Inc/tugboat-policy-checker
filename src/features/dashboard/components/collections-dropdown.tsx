@@ -3,9 +3,10 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, Image as ImageIcon, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -16,15 +17,16 @@ interface CollectionsDropdownProps {
   collections: Collection[];
   value: Collection | null;
   onChange: (collection: Collection) => void;
+  onCreateNew?: () => void;
 }
 
 export function CollectionsDropdown({
   collections,
   value,
   onChange,
+  onCreateNew,
 }: CollectionsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showTopChevron, setShowTopChevron] = useState(false);
   const [showBottomChevron, setShowBottomChevron] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -51,7 +53,6 @@ export function CollectionsDropdown({
       setIsScrolling(false);
     }, 500);
 
-    setShowTopChevron(scrollTop > 0);
     setShowBottomChevron(scrollTop < scrollHeight - clientHeight - 1);
   };
 
@@ -59,10 +60,7 @@ export function CollectionsDropdown({
     if (isOpen && scrollContainerRef.current) {
       const needsScroll = collections.length > 6;
       setShowBottomChevron(needsScroll);
-      setShowTopChevron(false);
     } else {
-      // Reset chevrons when closed
-      setShowTopChevron(false);
       setShowBottomChevron(false);
     }
   }, [isOpen, collections.length]);
@@ -89,13 +87,21 @@ export function CollectionsDropdown({
           ) : (
             <div className="flex items-center gap-3">
               <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-md">
-                <Image
-                  src={env.NEXT_PUBLIC_STORAGE_URL + value.cover_image_url}
-                  alt={value.name}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
+                {value.cover_image_url ? (
+                  <>
+                    <Image
+                      src={env.NEXT_PUBLIC_STORAGE_URL + value.cover_image_url}
+                      alt={value.name}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
+                  </>
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-accent">
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                )}
               </div>
               <div className="text-sm">{value.name}</div>
             </div>
@@ -113,14 +119,25 @@ export function CollectionsDropdown({
         className="w-[var(--radix-dropdown-menu-trigger-width)] bg-background p-0"
         align="start"
       >
-        <div
-          className={cn(
-            "items-center justify-center flex px-2 py-1 h-7 pointer-events-none transition-all duration-300 overflow-hidden",
-            showTopChevron ? "opacity-100 max-h-7" : "opacity-0 max-h-0 py-0"
-          )}
-        >
-          <ChevronUp />
-        </div>
+        {onCreateNew && (
+          <>
+            <DropdownMenuItem
+              onSelect={() => {
+                setIsOpen(false);
+                onCreateNew();
+              }}
+              className="h-[52px] px-2 py-2.5 flex items-center cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background">
+                  <Plus className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-sm text-foreground">Create New</span>
+              </div>
+            </DropdownMenuItem>
+            
+          </>
+        )}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
@@ -142,15 +159,23 @@ export function CollectionsDropdown({
               >
                 <div className="flex items-center gap-3">
                   <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-md">
-                    <Image
-                      src={
-                        env.NEXT_PUBLIC_STORAGE_URL + collection.cover_image_url
-                      }
-                      alt={collection.name}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
+                    {collection.cover_image_url ? (
+                      <>
+                        <Image
+                          src={
+                            env.NEXT_PUBLIC_STORAGE_URL + collection.cover_image_url
+                          }
+                          alt={collection.name}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
+                      </>
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-accent">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
                   <div className="text-sm">{collection.name}</div>
                 </div>

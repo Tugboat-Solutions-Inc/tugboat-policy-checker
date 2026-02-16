@@ -1,19 +1,20 @@
 "use client";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import { CollectionListItem } from "@/components/common/collection-list-item/collection-list-item";
 import EmptyState from "@/components/common/empty-state";
 import { NavLink } from "@/components/common/nav-link";
 import { ROUTES } from "@/config/routes";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TugboatMultiStepModal } from "@/components/common/tugboat-modal/tugboat-multi-step-modal";
+import { TugboatModal } from "@/components/common/tugboat-modal/tugboat-modal";
 import { AddVideosForm } from "./add-videos-form";
+import { AddCollectionForm } from "./add-collection-form";
+import { addCollectionSchema } from "../schemas/dashboard-schemas";
 import {
-  addVideosSchema,
   createUploadSchema,
 } from "../schemas/dashboard-schemas";
-import type { UploadedVideo } from "@/components/common/upload-video/upload-video";
 import {
   UploadImage,
   type UploadedFile,
@@ -28,10 +29,11 @@ import {
   getUploads,
   retryUpload,
 } from "@/features/collection-details/api/upload.actions";
+import { createCollection } from "@/features/collection-details/api/collection.actions";
 import { startDeduplication } from "@/features/collection-details/api/collection.actions";
-import { getVideos } from "@/features/collection-details/api/video.actions";
 import { Property } from "@/features/auth/types/property.types";
 import { convertImageToBase64, getFirstUnitId } from "@/lib/utils";
+import { compressImage } from "@/lib/client-upload";
 import type { UploadStatus } from "@/features/collection-details/types/upload.types";
 import type { Upload } from "@/features/auth/types/property.types";
 
@@ -51,33 +53,24 @@ export function DashboardLastUploadsSection({
   const { can } = usePermissions();
   const viewOnly = !can(CAPABILITIES.EDIT_COLLECTIONS);
   const [isMultiStepModalOpen, setIsMultiStepModalOpen] = useState(false);
+  const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false);
   const [selectedCollection, setSelectedCollection] =
     useState<Collection | null>(null);
   const [notes, setNotes] = useState<string>("");
-  const [videos, setVideos] = useState<File[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
-  const [uploadedVideos, setUploadedVideos] = useState<UploadedVideo[]>([]);
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadedFile[]>([]);
-  const [existingVideosCount, setExistingVideosCount] = useState(0);
-  const MAX_VIDEOS_LIMIT = 10;
   const MAX_PHOTOS = 100;
   const lastUploads = property.last_uploads;
 
-  const maxVideosAllowed = Math.max(0, MAX_VIDEOS_LIMIT - existingVideosCount);
+  const [collectionName, setCollectionName] = useState("");
+  const [description, setDescription] = useState("");
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const isTransitioningToCreate = useRef(false);
 
   const handleCollectionChange = async (collection: Collection | null) => {
     setSelectedCollection(collection);
-    setExistingVideosCount(0);
-
-    if (collection) {
-      const unitId = getFirstUnitId(property);
-      if (unitId) {
-        const result = await getVideos(property.id, unitId, collection.id);
-        if (result.success && result.data) {
-          setExistingVideosCount(result.data.length);
-        }
-      }
-    }
   };
 
   const handleRetryUpload = async (upload: Upload) => {
@@ -159,17 +152,6 @@ export function DashboardLastUploadsSection({
     }
   };
 
-  const handleVideosSelected = (files: File[]) => {
-    const newUploadedFiles: UploadedVideo[] = files.map((file) => ({
-      id: Math.random().toString(36).substring(7),
-      url: URL.createObjectURL(file),
-      file,
-      status: "success" as const,
-    }));
-    setUploadedVideos((prev) => [...prev, ...newUploadedFiles]);
-    setVideos((prev) => [...prev, ...files]);
-  };
-
   const handleMultipleImagesSelected = (files: File[]) => {
     const newFiles: UploadedFile[] = files.map((file) => ({
       id: Math.random().toString(36).substring(7),
@@ -179,15 +161,6 @@ export function DashboardLastUploadsSection({
     }));
     setUploadedPhotos((prev) => [...prev, ...newFiles]);
     setPhotos((prev) => [...prev, ...files]);
-  };
-
-  const handleRemoveVideo = (fileId: string) => {
-    const fileToRemove = uploadedVideos.find((f) => f.id === fileId);
-    if (fileToRemove) {
-      setUploadedVideos((prev) => prev.filter((f) => f.id !== fileId));
-      setVideos((prev) => prev.filter((f) => f !== fileToRemove.file));
-      URL.revokeObjectURL(fileToRemove.url);
-    }
   };
 
   const handleRemoveImage = (fileId: string) => {
@@ -203,13 +176,6 @@ export function DashboardLastUploadsSection({
     try {
       if (!selectedCollection?.id) {
         toast.error("Please select a collection");
-        return false;
-      }
-
-      const collectionExists = collections.some(c => c.id === selectedCollection.id);
-      if (!collectionExists) {
-        toast.error("Collection no longer exists", "Please select a different collection");
-        setSelectedCollection(null);
         return false;
       }
 
@@ -278,17 +244,94 @@ export function DashboardLastUploadsSection({
     }
   };
 
+  const handleCreateNewCollection = async () => {
+    const validation = addCollectionSchema.safeParse({
+      name: collectionName,
+      description: description,
+      cover_image: coverImage,
+    });
+
+    if (!validation.success) {
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const unitId = getFirstUnitId(property);
+      if (!unitId) {
+        toast.error("Unable to create collection", "This property doesn't have a unit set up yet.");
+        return;
+      }
+
+      let cover_image_b64: string | null = null;
+      if (coverImageFile) {
+        const compressedCover = await compressImage(coverImageFile);
+        cover_image_b64 = await convertImageToBase64(compressedCover);
+      }
+
+      const result = await createCollection(
+        property.id,
+        unitId,
+        {
+          name: collectionName,
+          description: description || "",
+          cover_image_b64: cover_image_b64 || undefined,
+        },
+      
+      );
+
+      if (!result.success) {
+        toast.error("Failed to create collection", result.message || "Something went wrong.");
+        return;
+      }
+
+      toast.success(`Collection "${collectionName}" created!`);
+      setIsCreateCollectionOpen(false);
+      setSelectedCollection(result.data);
+      setIsMultiStepModalOpen(true);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCoverImageSelected = (files: File[]) => {
+    if (files.length > 0) {
+      const previewUrl = URL.createObjectURL(files[0]);
+      setCoverImage(previewUrl);
+      setCoverImageFile(files[0]);
+    }
+  };
+
+  const handleRemoveCoverImage = () => {
+    if (coverImage) {
+      URL.revokeObjectURL(coverImage);
+      setCoverImage(null);
+    }
+    setCoverImageFile(null);
+  };
+
   useEffect(() => {
     if (!isMultiStepModalOpen) {
-      setSelectedCollection(null);
+      if (isTransitioningToCreate.current) {
+        isTransitioningToCreate.current = false;
+      } else {
+        setSelectedCollection(null);
+      }
       setNotes("");
-      setVideos([]);
       setPhotos([]);
       setUploadedPhotos([]);
-      setUploadedVideos([]);
-      setExistingVideosCount(0);
     }
   }, [isMultiStepModalOpen]);
+
+  useEffect(() => {
+    if (!isCreateCollectionOpen) {
+      setCollectionName("");
+      setDescription("");
+      setCoverImage(null);
+      setCoverImageFile(null);
+    }
+  }, [isCreateCollectionOpen]);
 
   if (collections.length === 0) {
     return null;
@@ -335,32 +378,18 @@ export function DashboardLastUploadsSection({
                     collections={collections}
                     selectedCollection={selectedCollection}
                     notes={notes}
-                    uploadedFiles={uploadedVideos}
                     onCollectionChange={handleCollectionChange}
                     onNotesChange={setNotes}
-                    onFilesSelected={handleVideosSelected}
-                    onRemoveFile={handleRemoveVideo}
-                    maxVideos={maxVideosAllowed}
+                    onCreateNewCollection={() => {
+                      isTransitioningToCreate.current = true;
+                      setIsMultiStepModalOpen(false);
+                      setIsCreateCollectionOpen(true);
+                    }}
                   />
                 ),
                 isNextDisabled: !selectedCollection,
-                maxFiles: maxVideosAllowed,
-                currentFiles: uploadedVideos.length,
                 onNext: async () => {
-                  const validation = addVideosSchema.safeParse({
-                    collection_id: selectedCollection?.id || "",
-                    notes: notes,
-                    walkthrough_videos: videos,
-                  });
-
-                  if (!validation.success) {
-                    console.error(
-                      "Validation errors:",
-                      validation.error.issues
-                    );
-                    return false;
-                  }
-                  return true;
+                  return !!selectedCollection;
                 },
               },
               {
@@ -391,6 +420,41 @@ export function DashboardLastUploadsSection({
             }}
             onCancel={() => setIsMultiStepModalOpen(false)}
           />
+          <TugboatModal
+            open={isCreateCollectionOpen}
+            onOpenChange={setIsCreateCollectionOpen}
+            title="Add a New Collection"
+            description="Add a name, cover, and photos. We'll generate a cover if you skip it."
+            maxWidth="lg"
+            showCloseButton={true}
+            footer={
+              <div className="flex gap-3 justify-end w-full">
+                <Button
+                  variant="secondary"
+                  onClick={() => setIsCreateCollectionOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateNewCollection}
+                  disabled={!collectionName.trim() || isCreating}
+                >
+                  {isCreating ? "Creating..." : "Create new"}
+                  {!isCreating && <ChevronRight className="h-4 w-4" />}
+                </Button>
+              </div>
+            }
+          >
+            <AddCollectionForm
+              onFileSelected={handleCoverImageSelected}
+              onRemove={handleRemoveCoverImage}
+              uploadedImage={coverImage}
+              description={description}
+              onDescriptionChange={setDescription}
+              collectionName={collectionName}
+              onCollectionNameChange={setCollectionName}
+            />
+          </TugboatModal>
         </div>
       </div>
       <div className="flex flex-col gap-2 mb-7">

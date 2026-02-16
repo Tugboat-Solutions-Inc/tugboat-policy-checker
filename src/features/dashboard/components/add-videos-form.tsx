@@ -2,10 +2,6 @@
 
 import { CollectionsDropdown } from "./collections-dropdown";
 import {
-  UploadVideo,
-  type UploadedVideo,
-} from "@/components/common/upload-video/upload-video";
-import {
   Field,
   FieldDescription,
   FieldGroup,
@@ -18,24 +14,18 @@ interface AddVideosFormProps {
   collections: Collection[];
   selectedCollection: Collection | null;
   notes: string;
-  uploadedFiles: UploadedVideo[];
   onCollectionChange: (collection: Collection | null) => void;
   onNotesChange: (notes: string) => void;
-  onFilesSelected: (files: File[]) => void;
-  onRemoveFile: (fileId: string) => void;
-  maxVideos?: number;
+  onCreateNewCollection?: () => void;
 }
 
 export function AddVideosForm({
   collections,
   selectedCollection,
   notes,
-  uploadedFiles,
   onCollectionChange,
   onNotesChange,
-  onFilesSelected,
-  onRemoveFile,
-  maxVideos = 10,
+  onCreateNewCollection,
 }: AddVideosFormProps) {
   return (
     <div className="w-full">
@@ -48,6 +38,7 @@ export function AddVideosForm({
             collections={collections}
             value={selectedCollection}
             onChange={onCollectionChange}
+            onCreateNew={onCreateNewCollection}
           />
         </Field>
 
@@ -65,22 +56,6 @@ export function AddVideosForm({
             placeholder="Enter notes"
             className="w-full h-12"
             maxLength={80}
-          />
-        </Field>
-
-        <Field className="gap-2">
-          {uploadedFiles.length === 0 && (
-            <FieldLabel htmlFor="walkthrough_videos" className="py-2">
-              Walkthrough video
-            </FieldLabel>
-          )}
-          <UploadVideo
-            variant="multiple"
-            className="mt-2"
-            maxFiles={maxVideos}
-            uploadedFiles={uploadedFiles}
-            onFilesSelected={onFilesSelected}
-            onRemoveFile={onRemoveFile}
           />
         </Field>
       </FieldGroup>
