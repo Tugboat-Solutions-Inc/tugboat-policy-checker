@@ -86,7 +86,7 @@ export function UploadsListContent({
           image={upload.photo_urls[0]}
           title={upload.collectionName}
           photoCount={upload.photo_urls.length}
-          itemCount={0}
+          itemCount={upload.items_count}
           notes={upload.notes}
           onNotesEdit={(value) => handleNotesChange(upload, value)}
           onRetry={upload.upload_status === "FAILED" ? () => handleRetryUpload(upload) : undefined}

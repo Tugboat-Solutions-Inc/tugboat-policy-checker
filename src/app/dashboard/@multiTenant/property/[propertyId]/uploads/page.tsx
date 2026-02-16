@@ -38,6 +38,7 @@ export default async function AllUploadsPage({ params }: AllUploadsPageProps) {
         collectionId: upload.collection_data?.id ?? "",
         collectionName: upload.collection_data?.name ?? "Unknown Collection",
         unitId: unit.id,
+        items_count: upload.items_count ?? 0,
       }));
     }
     return [];
