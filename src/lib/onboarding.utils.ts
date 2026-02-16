@@ -33,8 +33,9 @@ export function getOnboardingRoute(
     if (!decodedToken) {
       return DEFAULT_ONBOARDING_ROUTE;
     }
-    orgType = decodedToken.orgs?.[0]?.org_type;
-    role = decodedToken.orgs?.[0]?.role;
+    const primaryOrg = decodedToken.orgs?.find((org) => org.owner) ?? decodedToken.orgs?.[0];
+    orgType = primaryOrg?.org_type;
+    role = primaryOrg?.role;
   }
 
   if (role === ORG_ROLES.MEMBER) {

@@ -10,6 +10,7 @@ export function useAdminUser() {
   const lastName = decodedToken.last_name?.trim() || "";
   const fullName =
     [firstName, lastName].filter(Boolean).join(" ") || decodedToken.email;
+  const primaryOrg = decodedToken.orgs?.find((org) => org.owner) ?? decodedToken.orgs?.[0];
 
   return {
     id: decodedToken.sub,
@@ -21,9 +22,9 @@ export function useAdminUser() {
     phone: decodedToken.phone,
     role: decodedToken.role,
     onboardingComplete: decodedToken.onboarding_complete,
-    accountType: decodedToken.orgs[0]?.org_type,
-    orgName: decodedToken.orgs[0]?.org_name,
-    orgLogoUrl: decodedToken.orgs[0]?.org_logo_url,
+    accountType: primaryOrg?.org_type,
+    orgName: primaryOrg?.org_name,
+    orgLogoUrl: primaryOrg?.org_logo_url,
   };
 }
 

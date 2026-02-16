@@ -32,7 +32,7 @@ export async function getPropertyPermissions(
     }
 
     const decoded = decodeAccessToken(session.access_token);
-    const currentOrg = decoded?.orgs?.[0];
+    const currentOrg = decoded?.orgs?.find((org) => org.owner) ?? decoded?.orgs?.[0];
 
     const isClient = currentOrg?.is_client === true;
 

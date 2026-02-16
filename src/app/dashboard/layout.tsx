@@ -22,9 +22,11 @@ export default async function DashboardRootLayout({
     getDecodedJWT(),
   ]);
 
+  const primaryOrg = decodedToken?.orgs?.find((org) => org.owner) ?? decodedToken?.orgs?.[0];
+
   const isCompanyClient = 
     accountType === "COMPANY" && 
-    decodedToken?.orgs?.[0]?.is_client === true;
+    primaryOrg?.is_client === true;
 
   let content = children;
 
@@ -40,9 +42,9 @@ export default async function DashboardRootLayout({
 
   if (
     (accountType === "MULTI_TENANT" || (accountType === "COMPANY" && !isCompanyClient)) &&
-    decodedToken?.orgs?.[0]?.org_id
+    primaryOrg?.org_id
   ) {
-    const organizationId = decodedToken.orgs[0].org_id;
+    const organizationId = primaryOrg.org_id;
     const orgResult = await getCachedOrganizationById(organizationId);
     if (orgResult.success) {
       properties = {

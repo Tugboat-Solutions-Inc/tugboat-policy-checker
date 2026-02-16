@@ -45,7 +45,10 @@ export const useAuthStore = create<AuthStore>()(
         if (!state.decodedToken?.orgs || state.decodedToken.orgs.length === 0) {
           return null;
         }
-        return state.decodedToken.orgs[0];
+        return (
+          state.decodedToken.orgs.find((org) => org.owner) ??
+          state.decodedToken.orgs[0]
+        );
       },
 
       updateOrgName: (orgId: string, newName: string) => {

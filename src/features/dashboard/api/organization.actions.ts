@@ -56,7 +56,8 @@ export async function updateOrganizationType(
   }
 
   const decodedToken = decodeAccessToken(session.access_token);
-  const organizationId = decodedToken?.orgs?.[0]?.org_id;
+  const primaryOrg = decodedToken?.orgs?.find((org) => org.owner) ?? decodedToken?.orgs?.[0];
+  const organizationId = primaryOrg?.org_id;
 
   if (!organizationId) {
     return { success: false, message: "No organization found for current user" };

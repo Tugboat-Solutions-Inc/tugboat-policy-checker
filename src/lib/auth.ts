@@ -30,13 +30,19 @@ async function getDebugAccountType(): Promise<AccountType | null> {
   return null;
 }
 
+function getPrimaryOrg(decodedToken: DecodedJWT | null) {
+  if (!decodedToken?.orgs || decodedToken.orgs.length === 0) return null;
+  return decodedToken.orgs.find((org) => org.owner) ?? decodedToken.orgs[0];
+}
+
 export async function getUserAccountType(): Promise<AccountType> {
   const debugOverride = await getDebugAccountType();
   if (debugOverride) return debugOverride;
 
   const decodedToken = await getDecodedJWT();
-  if (decodedToken?.orgs?.[0]?.org_type) {
-    return decodedToken.orgs[0].org_type as AccountType;
+  const primaryOrg = getPrimaryOrg(decodedToken);
+  if (primaryOrg?.org_type) {
+    return primaryOrg.org_type as AccountType;
   }
 
   const supabase = await createClient();
@@ -80,7 +86,8 @@ export const getDecodedJWT = cache(async (): Promise<DecodedJWT | null> => {
 
 export const getUserOrgRole = cache(async (): Promise<OrgRole> => {
   const decodedToken = await getDecodedJWT();
-  return decodedToken?.orgs?.[0]?.role ?? null;
+  const primaryOrg = getPrimaryOrg(decodedToken);
+  return primaryOrg?.role ?? null;
 });
 
 export async function getAuthHeaders(): Promise<Record<string, string> | null> {
