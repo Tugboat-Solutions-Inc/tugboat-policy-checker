@@ -38,7 +38,7 @@ export async function getPropertyPermissions(
 
     if (!isClient && (currentOrg?.owner || currentOrg?.role === "ADMIN")) {
       const propertyResult = await getCachedPropertyById(propertyId);
-      if (propertyResult.success && propertyResult.data.owner_id === decoded.sub) {
+      if (propertyResult.success && propertyResult.data.owner_id === decoded?.sub) {
         return {
           success: true,
           data: ROLE_CAPABILITIES.EDITOR,
