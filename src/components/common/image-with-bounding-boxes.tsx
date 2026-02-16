@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-const DEBUG = true; // ← flip to false when done debugging
+const DEBUG = false;
 
 interface ImageWithBoundingBoxesProps {
   imageUrl: string;
