@@ -56,7 +56,9 @@ export async function updateOrganizationType(
   }
 
   const decodedToken = decodeAccessToken(session.access_token);
-  const primaryOrg = decodedToken?.orgs?.find((org) => org.owner) ?? decodedToken?.orgs?.[0];
+  const primaryOrg = decodedToken?.orgs?.find((org) => org.org_type !== "INDIVIDUAL")
+    ?? decodedToken?.orgs?.find((org) => org.owner)
+    ?? decodedToken?.orgs?.[0];
   const organizationId = primaryOrg?.org_id;
 
   if (!organizationId) {

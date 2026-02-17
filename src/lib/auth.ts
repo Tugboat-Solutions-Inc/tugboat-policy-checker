@@ -32,6 +32,11 @@ async function getDebugAccountType(): Promise<AccountType | null> {
 
 function getPrimaryOrg(decodedToken: DecodedJWT | null) {
   if (!decodedToken?.orgs || decodedToken.orgs.length === 0) return null;
+  // If user belongs to a non-INDIVIDUAL org (i.e. was invited), prefer that
+  const nonIndividualOrg = decodedToken.orgs.find(
+    (org) => org.org_type !== "INDIVIDUAL"
+  );
+  if (nonIndividualOrg) return nonIndividualOrg;
   return decodedToken.orgs.find((org) => org.owner) ?? decodedToken.orgs[0];
 }
 

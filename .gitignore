@@ -38,3 +38,7 @@ next-env.d.ts
 # mobile
 /mobile
 /backend
+
+# test assets
+/test-images
+generate-test-images.mjs
