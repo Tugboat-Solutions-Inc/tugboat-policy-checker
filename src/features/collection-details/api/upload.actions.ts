@@ -99,6 +99,32 @@ export async function getUploadsByUnitId(
   });
 }
 
+export async function startUploadProcessing(
+  propertyId: string,
+  unitId: string,
+  collectionId: string,
+  uploadId: string
+): Promise<ActionResult<null>> {
+  const result = await fetchWithAuth<null>(
+    API_ENDPOINTS.PROPERTIES.UPLOADS_START(
+      propertyId,
+      unitId,
+      collectionId,
+      uploadId
+    ),
+    {
+      method: "POST",
+      errorPrefix: "Failed to start upload processing",
+    }
+  );
+
+  if (result.success) {
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+  }
+
+  return result;
+}
+
 export async function retryUpload(
   propertyId: string,
   unitId: string,

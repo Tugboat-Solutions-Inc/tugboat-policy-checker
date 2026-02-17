@@ -1,6 +1,6 @@
 import { Item } from "./item.types";
 
-export type UploadStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type UploadStatus = "DRAFT" | "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export type UploadCollectionData = {
   id: string;
@@ -30,5 +30,4 @@ export type GetUploadResponse = {
 
 export type CreateUploadData = {
   notes: string;
-  photos_b64: string[];
 };

@@ -1,15 +1,15 @@
 import { createClient } from "@/utils/supabase/client";
 import { getImpersonatedUserId } from "@/features/dashboard/utils/impersonation";
 import { API_ENDPOINTS } from "@/config/api";
+import { createUpload } from "@/features/collection-details/api/upload.actions";
+import { startUploadProcessing } from "@/features/collection-details/api/upload.actions";
 import { startDeduplication } from "@/features/collection-details/api/collection.actions";
 import type { ActionResult } from "@/lib/fetch-with-auth";
 import { useUploadProgressStore } from "@/stores/upload-progress-store";
 
-// --- Image Compression ---
-
 const MAX_DIMENSION = 1920;
 const JPEG_QUALITY = 0.8;
-const SKIP_COMPRESSION_THRESHOLD = 200 * 1024; // 200KB
+const SKIP_COMPRESSION_THRESHOLD = 200 * 1024;
 
 export async function compressImage(file: File): Promise<Blob> {
   if (file.size <= SKIP_COMPRESSION_THRESHOLD) {
@@ -61,28 +61,6 @@ export async function compressImage(file: File): Promise<Blob> {
     );
   });
 }
-
-// --- Blob to Base64 ---
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      const base64Marker = "base64,";
-      const idx = result.indexOf(base64Marker);
-      if (idx === -1) {
-        reject(new Error("Failed to convert blob to base64"));
-        return;
-      }
-      resolve(result.substring(idx + base64Marker.length));
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-}
-
-// --- Client-side Authenticated Fetch ---
 
 let cachedImpersonatedUserId: string | null | undefined;
 
@@ -150,7 +128,130 @@ export async function clientFetchWithAuth<T>(
   }
 }
 
-// --- Upload ---
+async function clientMultipartUpload(
+  url: string,
+  formData: FormData
+): Promise<ActionResult<null>> {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session?.access_token) {
+    return { success: false, message: "Not authenticated" };
+  }
+
+  try {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${session.access_token}`,
+    };
+
+    const impersonatedUserId = await getImpersonationHeader();
+    if (impersonatedUserId) {
+      headers["TB-IMA-Impersonated-User"] = impersonatedUserId;
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => response.statusText);
+      return { success: false, message: `Photo upload failed: ${errorText}` };
+    }
+
+    return { success: true, data: null };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Photo upload failed",
+    };
+  }
+}
+
+const MAX_BATCH_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_BATCH_FILE_COUNT = 10;
+
+function splitIntoBatches(photos: Blob[]): Blob[][] {
+  const batches: Blob[][] = [];
+  let currentBatch: Blob[] = [];
+  let currentSize = 0;
+
+  for (const photo of photos) {
+    if (
+      currentBatch.length > 0 &&
+      (currentSize + photo.size > MAX_BATCH_SIZE_BYTES ||
+        currentBatch.length >= MAX_BATCH_FILE_COUNT)
+    ) {
+      batches.push(currentBatch);
+      currentBatch = [];
+      currentSize = 0;
+    }
+    currentBatch.push(photo);
+    currentSize += photo.size;
+  }
+
+  if (currentBatch.length > 0) {
+    batches.push(currentBatch);
+  }
+
+  return batches;
+}
+
+async function deduplicatePhotos(photos: Blob[]): Promise<Blob[]> {
+  const seen = new Set<string>();
+  const unique: Blob[] = [];
+
+  for (const photo of photos) {
+    const buffer = await photo.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+    const hash = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    if (!seen.has(hash)) {
+      seen.add(hash);
+      unique.push(photo);
+    }
+  }
+
+  return unique;
+}
+
+async function addPhotosToUpload(
+  propertyId: string,
+  unitId: string,
+  collectionId: string,
+  uploadId: string,
+  compressedPhotos: Blob[]
+): Promise<ActionResult<null>> {
+  const url = API_ENDPOINTS.PROPERTIES.UPLOADS_PHOTOS(
+    propertyId,
+    unitId,
+    collectionId,
+    uploadId
+  );
+
+  const uniquePhotos = await deduplicatePhotos(compressedPhotos);
+  const batches = splitIntoBatches(uniquePhotos);
+
+  for (let b = 0; b < batches.length; b++) {
+    const formData = new FormData();
+    for (let i = 0; i < batches[b].length; i++) {
+      formData.append("photos", batches[b][i], `photo-${b}-${i}.jpg`);
+    }
+
+    const result = await clientMultipartUpload(url, formData);
+    if (!result.success) {
+      const isAlreadyAttached = result.message?.includes("already attached");
+      if (!isAlreadyAttached) {
+        return result;
+      }
+    }
+  }
+
+  return { success: true, data: null };
+}
 
 export type BatchUploadProgress = {
   completed: number;
@@ -178,18 +279,25 @@ export async function uploadPhotosInBatches(
   config: BatchUploadConfig
 ): Promise<BatchUploadResult> {
   const { collectionId, unitId, propertyId, notes, onProgress } = config;
-  const url = API_ENDPOINTS.PROPERTIES.UPLOADS(propertyId, unitId, collectionId);
 
   const progressStore = useUploadProgressStore.getState();
   progressStore.startUpload(files.length);
 
   try {
-    // Compress and convert each image sequentially to limit memory
-    const photosB64: string[] = [];
+    const createResult = await createUpload(collectionId, unitId, propertyId, {
+      notes,
+    });
+
+    if (!createResult.success) {
+      return { success: false, successCount: 0, failedBatches: [0] };
+    }
+
+    const uploadId = createResult.data.id;
+
+    const compressedPhotos: Blob[] = [];
     for (let i = 0; i < files.length; i++) {
       const compressed = await compressImage(files[i]);
-      const base64 = await blobToBase64(compressed);
-      photosB64.push(base64);
+      compressedPhotos.push(compressed);
 
       useUploadProgressStore.getState().setProgress(i + 1, files.length);
 
@@ -201,22 +309,39 @@ export async function uploadPhotosInBatches(
       });
     }
 
-    const result = await clientFetchWithAuth(url, {
-      method: "POST",
-      body: {
-        notes,
-        photos_b64: photosB64,
-      },
-    });
+    const photosResult = await addPhotosToUpload(
+      propertyId,
+      unitId,
+      collectionId,
+      uploadId,
+      compressedPhotos
+    );
 
-    if (result.success) {
-      startDeduplication(propertyId, unitId, collectionId);
+    if (!photosResult.success) {
+      return {
+        success: false,
+        successCount: 0,
+        failedBatches: [0],
+      };
     }
 
+    const startResult = await startUploadProcessing(
+      propertyId,
+      unitId,
+      collectionId,
+      uploadId
+    );
+
+    if (!startResult.success) {
+      return { success: false, successCount: 0, failedBatches: [0] };
+    }
+
+    startDeduplication(propertyId, unitId, collectionId);
+
     return {
-      success: result.success,
-      successCount: result.success ? files.length : 0,
-      failedBatches: result.success ? [] : [0],
+      success: true,
+      successCount: files.length,
+      failedBatches: [],
     };
   } finally {
     useUploadProgressStore.getState().finishUpload();

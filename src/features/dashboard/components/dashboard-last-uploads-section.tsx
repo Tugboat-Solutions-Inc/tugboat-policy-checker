@@ -24,16 +24,14 @@ import { usePermissions } from "@/components/common/permissions-provider";
 import { CAPABILITIES } from "@/constants/permissions.constants";
 import { Collection } from "@/features/collection-details/types/collection.types";
 import {
-  createUpload,
   updateUpload,
   getUploads,
   retryUpload,
 } from "@/features/collection-details/api/upload.actions";
 import { createCollection } from "@/features/collection-details/api/collection.actions";
-import { startDeduplication } from "@/features/collection-details/api/collection.actions";
 import { Property } from "@/features/auth/types/property.types";
 import { convertImageToBase64, getFirstUnitId } from "@/lib/utils";
-import { compressImage } from "@/lib/client-upload";
+import { uploadPhotosInBatches, compressImage } from "@/lib/client-upload";
 import type { UploadStatus } from "@/features/collection-details/types/upload.types";
 import type { Upload } from "@/features/auth/types/property.types";
 
@@ -200,39 +198,24 @@ export function DashboardLastUploadsSection({
         return false;
       }
 
-      const photosBase64 = await Promise.all(
-        photos.map(async (photo) => {
-          const base64 = await convertImageToBase64(photo);
-          if (!base64) {
-            throw new Error(`Failed to convert photo to base64: ${photo.name}`);
-          }
-          return base64;
-        })
-      );
-
       const loadingToast = toast.loading(
         "Uploading photos",
         `Uploading ${photos.length} ${photos.length === 1 ? "photo" : "photos"} to ${selectedCollection.name}...`
       );
 
-      const response = await createUpload(
-        selectedCollection.id,
+      const result = await uploadPhotosInBatches(photos, {
+        collectionId: selectedCollection.id,
         unitId,
-        property.id,
-        {
-          notes: notes || " ",
-          photos_b64: photosBase64,
-        }
-      );
+        propertyId: property.id,
+        notes: notes || " ",
+      });
 
       toast.dismiss(loadingToast);
 
-      if (!response.success) {
-        toast.error("Failed to create upload", response.message || `Could not upload photos to ${selectedCollection.name}`);
+      if (!result.success) {
+        toast.error("Failed to create upload", `Could not upload photos to ${selectedCollection.name}`);
         return false;
       }
-
-      startDeduplication(property.id, unitId, selectedCollection.id);
 
       toast.success(`Photos uploaded to ${selectedCollection.name}!`, `We're now detecting items. This may take a moment.`);
       return true;
