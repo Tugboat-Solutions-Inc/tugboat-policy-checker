@@ -4,8 +4,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import Image from "next/image";
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,11 +94,10 @@ function BrandIconInput({
       aria-label="Upload brand icon"
     >
       {previewUrl ? (
-        <Image
+        <img
           src={previewUrl}
           alt="Brand icon preview"
-          fill
-          className="object-cover rounded-[10px] p-2.5"
+          className="absolute inset-0 w-full h-full object-cover rounded-[10px] p-2.5"
         />
       ) : (
         <Upload className="h-4 w-4 text-primary" />

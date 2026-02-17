@@ -32,7 +32,10 @@ async function CollectionHeader({
   );
 
   if (!collectionResult.success) {
-    notFound();
+    if (collectionResult.status === 404) {
+      notFound();
+    }
+    throw new Error(collectionResult.message);
   }
 
   return (
@@ -84,7 +87,10 @@ async function CollectionItems({
   ]);
 
   if (!collectionResult.success) {
-    notFound();
+    if (collectionResult.status === 404) {
+      notFound();
+    }
+    throw new Error(collectionResult.message);
   }
 
   const itemsData = itemsResult.success ? itemsResult.data : null;

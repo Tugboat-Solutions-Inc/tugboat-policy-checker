@@ -48,7 +48,7 @@ export const individualPropertySchema = z.object({
 
 export const multiTenantSetupSchema = z.object({
   company_name: z.string().min(1, "Company name is required"),
-  brand_icon: z.file().optional(),
+  brand_icon: z.file().optional().nullable(),
 });
 
 export const companySetupSchema = z.object({
