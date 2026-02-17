@@ -36,7 +36,9 @@ export default async function SignupVerifiedPage({ searchParams }: SignupVerifie
 
   if (session?.access_token) {
     const decodedToken = decodeAccessToken(session.access_token);
-    const primaryOrg = decodedToken?.orgs?.find((org) => org.owner) ?? decodedToken?.orgs?.[0];
+    const primaryOrg = decodedToken?.orgs?.find((org) => org.org_type !== "INDIVIDUAL")
+      ?? decodedToken?.orgs?.find((org) => org.owner)
+      ?? decodedToken?.orgs?.[0];
     const orgType = primaryOrg?.org_type;
     const orgRole = primaryOrg?.role;
     onboardingRoute = getOnboardingRoute(orgType, orgRole);

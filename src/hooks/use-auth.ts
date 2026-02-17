@@ -10,7 +10,9 @@ export function useAdminUser() {
   const lastName = decodedToken.last_name?.trim() || "";
   const fullName =
     [firstName, lastName].filter(Boolean).join(" ") || decodedToken.email;
-  const primaryOrg = decodedToken.orgs?.find((org) => org.owner) ?? decodedToken.orgs?.[0];
+  const primaryOrg = decodedToken.orgs?.find((org) => org.org_type !== "INDIVIDUAL")
+    ?? decodedToken.orgs?.find((org) => org.owner)
+    ?? decodedToken.orgs?.[0];
 
   return {
     id: decodedToken.sub,

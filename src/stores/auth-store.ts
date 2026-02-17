@@ -46,6 +46,7 @@ export const useAuthStore = create<AuthStore>()(
           return null;
         }
         return (
+          state.decodedToken.orgs.find((org) => org.org_type !== "INDIVIDUAL") ??
           state.decodedToken.orgs.find((org) => org.owner) ??
           state.decodedToken.orgs[0]
         );

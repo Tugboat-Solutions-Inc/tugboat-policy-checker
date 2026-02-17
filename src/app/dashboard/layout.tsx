@@ -22,7 +22,9 @@ export default async function DashboardRootLayout({
     getDecodedJWT(),
   ]);
 
-  const primaryOrg = decodedToken?.orgs?.find((org) => org.owner) ?? decodedToken?.orgs?.[0];
+  const primaryOrg = decodedToken?.orgs?.find((org) => org.org_type !== "INDIVIDUAL")
+    ?? decodedToken?.orgs?.find((org) => org.owner)
+    ?? decodedToken?.orgs?.[0];
 
   const isCompanyClient = 
     accountType === "COMPANY" && 
