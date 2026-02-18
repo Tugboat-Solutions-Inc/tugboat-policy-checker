@@ -27,6 +27,7 @@ import {
   updateUpload,
   getUploads,
   retryUpload,
+  revalidateDashboardProperty,
 } from "@/features/collection-details/api/upload.actions";
 import { createCollection } from "@/features/collection-details/api/collection.actions";
 import { Property } from "@/features/auth/types/property.types";
@@ -218,6 +219,7 @@ export function DashboardLastUploadsSection({
       }
 
       toast.success(`Photos uploaded to ${selectedCollection.name}!`, `We're now detecting items. This may take a moment.`);
+      await revalidateDashboardProperty(property.id);
       return true;
     } catch (error) {
       const errorMessage =

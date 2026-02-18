@@ -26,7 +26,7 @@ export async function createCollection(
   );
 
   if (result.success && !options?.skipRevalidation) {
-    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId), "layout");
   }
 
   return result;
@@ -72,7 +72,7 @@ export async function deleteCollection(
   );
 
   if (result.success) {
-    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId), "layout");
   }
 
   return result;
@@ -98,7 +98,7 @@ export async function updateCollection(
     }
   );
   if (result.success && !options?.skipRevalidation) {
-    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId), "layout");
     revalidatePath(ROUTES.DASHBOARD.COLLECTION(propertyId, collectionId, unitId));
   }
 
@@ -186,7 +186,7 @@ export async function updateCollectionFavorite(
   );
 
   if (result.success && !options?.skipRevalidation) {
-    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId), "layout");
     revalidatePath(ROUTES.DASHBOARD.COLLECTION(propertyId, collectionId, unitId));
   }
 

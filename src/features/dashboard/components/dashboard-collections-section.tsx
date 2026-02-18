@@ -238,12 +238,13 @@ export function DashboardCollectionsSection({
       const uploadNotes = notes.trim() || " ";
       const name = collectionName;
 
+      // Capture route before any state changes
+      const collectionRoute = ROUTES.DASHBOARD.COLLECTION(property.id, collectionId, unitId);
+
       setSelectedCollection(result.data);
       setIsMultiStepModalOpen(false);
-      router.push(
-        ROUTES.DASHBOARD.COLLECTION(property.id, collectionId, unitId)
-      );
 
+      // Fire upload in background before navigating
       if (photosToUpload.length > 0) {
         toast.success(`Collection "${name}" created!`, "Uploading photos in the background...");
 
@@ -274,6 +275,11 @@ export function DashboardCollectionsSection({
       } else {
         toast.success(`Collection "${name}" created!`);
       }
+
+      // Navigate inside startTransition so it doesn't get swallowed by concurrent state updates
+      startTransition(() => {
+        router.push(collectionRoute);
+      });
 
       return true;
     } catch (error) {

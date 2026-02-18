@@ -10,6 +10,12 @@ import type {
   Upload,
 } from "../types/upload.types";
 
+export async function revalidateDashboardProperty(
+  propertyId: string
+): Promise<void> {
+  revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId), "layout");
+}
+
 export async function createUpload(
   collectionId: string,
   unitId: string,
@@ -26,7 +32,7 @@ export async function createUpload(
   );
 
   if (result.success) {
-    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId), "layout");
   }
 
   return result;
@@ -119,7 +125,7 @@ export async function startUploadProcessing(
   );
 
   if (result.success) {
-    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId), "layout");
   }
 
   return result;
@@ -149,7 +155,7 @@ export async function retryUpload(
   console.log("[retryUpload] Result:", result);
 
   if (result.success) {
-    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId));
+    revalidatePath(ROUTES.DASHBOARD.PROPERTY(propertyId), "layout");
   }
 
   return result;
