@@ -1,10 +1,8 @@
 import { createClient } from "@/utils/supabase/client";
 import { getImpersonatedUserId } from "@/features/dashboard/utils/impersonation";
 import { API_ENDPOINTS } from "@/config/api";
-import { createUpload } from "@/features/collection-details/api/upload.actions";
-import { startUploadProcessing } from "@/features/collection-details/api/upload.actions";
-import { startDeduplication } from "@/features/collection-details/api/collection.actions";
 import type { ActionResult } from "@/lib/fetch-with-auth";
+import type { Upload } from "@/features/collection-details/types/upload.types";
 import { useUploadProgressStore } from "@/stores/upload-progress-store";
 
 const MAX_DIMENSION = 1920;
@@ -284,9 +282,11 @@ export async function uploadPhotosInBatches(
   progressStore.startUpload(files.length);
 
   try {
-    const createResult = await createUpload(collectionId, unitId, propertyId, {
-      notes,
-    });
+    // Use client-side fetch instead of server actions so uploads survive navigation
+    const createResult = await clientFetchWithAuth<Upload>(
+      API_ENDPOINTS.PROPERTIES.UPLOADS(propertyId, unitId, collectionId),
+      { method: "POST", body: { notes } }
+    );
 
     if (!createResult.success) {
       return { success: false, successCount: 0, failedBatches: [0] };
@@ -325,18 +325,26 @@ export async function uploadPhotosInBatches(
       };
     }
 
-    const startResult = await startUploadProcessing(
-      propertyId,
-      unitId,
-      collectionId,
-      uploadId
+    // Use client-side fetch for start processing
+    const startResult = await clientFetchWithAuth<null>(
+      API_ENDPOINTS.PROPERTIES.UPLOADS_START(
+        propertyId,
+        unitId,
+        collectionId,
+        uploadId
+      ),
+      { method: "POST" }
     );
 
     if (!startResult.success) {
       return { success: false, successCount: 0, failedBatches: [0] };
     }
 
-    startDeduplication(propertyId, unitId, collectionId);
+    // Fire-and-forget deduplication via client-side fetch
+    clientFetchWithAuth<null>(
+      API_ENDPOINTS.PROPERTIES.DEDUPLICATE(propertyId, unitId, collectionId),
+      { method: "POST" }
+    );
 
     return {
       success: true,
