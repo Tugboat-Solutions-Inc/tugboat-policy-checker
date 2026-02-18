@@ -33,9 +33,10 @@ export function ImageWithBoundingBoxes({
     if (!container) return;
 
     const updateSize = () => {
+      const rect = container.getBoundingClientRect();
       setContainerSize({
-        width: container.clientWidth,
-        height: container.clientHeight,
+        width: rect.width,
+        height: rect.height,
       });
     };
 
@@ -57,48 +58,30 @@ export function ImageWithBoundingBoxes({
     []
   );
 
+  const cw = containerSize.width;
+  const ch = containerSize.height;
+  const iw = imageSize?.width ?? 0;
+  const ih = imageSize?.height ?? 0;
+  const hasLayout = iw > 0 && ih > 0 && cw > 0 && ch > 0;
+
+  const scale = hasLayout ? Math.min(cw / iw, ch / ih) : 1;
+  const renderedWidth = hasLayout ? iw * scale : 0;
+  const renderedHeight = hasLayout ? ih * scale : 0;
+  const offsetX = hasLayout ? (cw - renderedWidth) / 2 : 0;
+  const offsetY = hasLayout ? (ch - renderedHeight) / 2 : 0;
+
   let boundingBoxElement: React.ReactNode = null;
 
-  if (
-    imageSize &&
-    containerSize.width > 0 &&
-    containerSize.height > 0 &&
-    boundingBoxes &&
-    boundingBoxes.length === 4
-  ) {
-    const cw = containerSize.width;
-    const ch = containerSize.height;
-    const iw = imageSize.width;
-    const ih = imageSize.height;
+  if (hasLayout && boundingBoxes && boundingBoxes.length === 4) {
+    const xMin = boundingBoxes[0];
+    const xMax = boundingBoxes[1];
+    const yMin = boundingBoxes[2];
+    const yMax = boundingBoxes[3];
 
-    const scale = cw / iw < ch / ih ? cw / iw : ch / ih;
-    const renderedWidth = iw * scale;
-    const renderedHeight = ih * scale;
-    const offsetX = (cw - renderedWidth) / 2;
-    const offsetY = (ch - renderedHeight) / 2;
-
-    const clamp = (v: number, min: number, max: number) =>
-      Math.max(min, Math.min(v, max));
-
-    const x1 = clamp(Math.min(boundingBoxes[0], boundingBoxes[1]), 0, iw);
-    const x2 = clamp(Math.max(boundingBoxes[0], boundingBoxes[1]), 0, iw);
-    const y1 = clamp(Math.min(boundingBoxes[2], boundingBoxes[3]), 0, ih);
-    const y2 = clamp(Math.max(boundingBoxes[2], boundingBoxes[3]), 0, ih);
-
-    let left = offsetX + x1 * scale;
-    let top = offsetY + y1 * scale;
-    let width = (x2 - x1) * scale;
-    let height = (y2 - y1) * scale;
-
-    left = Math.max(offsetX, left);
-    top = Math.max(offsetY, top);
-
-    if (left + width > offsetX + renderedWidth) {
-      width = offsetX + renderedWidth - left;
-    }
-    if (top + height > offsetY + renderedHeight) {
-      height = offsetY + renderedHeight - top;
-    }
+    const left = offsetX + xMin * scale;
+    const top = offsetY + yMin * scale;
+    const width = (xMax - xMin) * scale;
+    const height = (yMax - yMin) * scale;
 
     if (width > 0 && height > 0) {
       boundingBoxElement = (
@@ -124,15 +107,34 @@ export function ImageWithBoundingBoxes({
       ref={containerRef}
       className={cn("relative w-full h-full overflow-hidden", className)}
     >
-      <Image
-        src={imageUrl}
-        alt={alt}
-        fill
-        unoptimized
-        className="object-contain"
-        onLoad={handleImageLoad}
-        priority
-      />
+      {hasLayout ? (
+        <Image
+          src={imageUrl}
+          alt={alt}
+          width={iw}
+          height={ih}
+          unoptimized
+          priority
+          onLoad={handleImageLoad}
+          style={{
+            position: "absolute",
+            left: offsetX,
+            top: offsetY,
+            width: renderedWidth,
+            height: renderedHeight,
+          }}
+        />
+      ) : (
+        <Image
+          src={imageUrl}
+          alt={alt}
+          fill
+          unoptimized
+          className="object-contain"
+          onLoad={handleImageLoad}
+          priority
+        />
+      )}
       {boundingBoxElement}
     </div>
   );
