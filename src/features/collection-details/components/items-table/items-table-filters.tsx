@@ -21,12 +21,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { Brand } from "../../types/brand.types";
-import type { Category } from "../../types/category.types";
 import {
   type ItemFilters,
   CONDITION_OPTIONS,
 } from "../../types/item-filters.types";
+
+type FilterOption = { id: string; name: string };
 
 interface ItemsTableFiltersProps {
   searchValue: string;
@@ -42,8 +42,8 @@ interface ItemsTableFiltersProps {
   viewOnly?: boolean;
   selectedCount?: number;
   onDeleteClick?: () => void;
-  brands: Brand[];
-  categories: Category[];
+  brands: FilterOption[];
+  categories: FilterOption[];
 }
 
 function formatLastSaved(date: Date | null): string {
@@ -108,10 +108,6 @@ function MultiSelectDropdown({
   const [showTopScroll, setShowTopScroll] = useState(false);
   const [showBottomScroll, setShowBottomScroll] = useState(false);
 
-  const MAX_ITEMS = 8;
-  const visibleOptions = options.slice(0, MAX_ITEMS);
-  const hasMoreItems = options.length > MAX_ITEMS;
-
   const handleScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
@@ -123,7 +119,7 @@ function MultiSelectDropdown({
     const el = scrollRef.current;
     if (!el) return;
     setShowBottomScroll(el.scrollHeight > el.clientHeight);
-  }, [visibleOptions]);
+  }, [options]);
 
   const toggleOption = (id: string) => {
     if (selected.includes(id)) {
@@ -162,7 +158,7 @@ function MultiSelectDropdown({
             className="max-h-[320px] overflow-y-auto"
             onScroll={handleScroll}
           >
-            {visibleOptions.map((option) => (
+            {options.map((option) => (
               <div
                 key={option.id}
                 role="button"
@@ -187,11 +183,6 @@ function MultiSelectDropdown({
               </div>
             ))}
           </div>
-          {hasMoreItems && (
-            <div className="px-3 py-2 text-xs text-muted-foreground border-t border-border">
-              Showing {MAX_ITEMS} of {options.length} items
-            </div>
-          )}
           {showBottomScroll && (
             <div className="flex justify-center py-1.5 border-t border-border bg-muted/30">
               <ChevronDown className="h-4 w-4 text-muted-foreground" />

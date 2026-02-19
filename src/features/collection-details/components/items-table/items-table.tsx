@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { TableMeta, RowSelectionState } from "@tanstack/react-table";
 import { DataTable } from "@/components/common/data-table/data-table";
 import { ItemsTableFilters } from "./items-table-filters";
@@ -153,6 +153,39 @@ export function ItemsTable({
     alt: string;
     boundingBoxes: number[] | null;
   } | null>(null);
+
+  // Accumulate unique categories/brands seen across all loaded pages so the
+  // filter dropdowns aren't limited to just the current page.
+  const seenCategoriesRef = useRef<Map<string, string>>(new Map());
+  const seenBrandsRef = useRef<Map<string, string>>(new Map());
+  const [filterCategories, setFilterCategories] = useState<{ id: string; name: string }[]>([]);
+  const [filterBrands, setFilterBrands] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    let changed = false;
+    items.forEach((item) => {
+      if (item.categoryId && item.category && !seenCategoriesRef.current.has(item.categoryId)) {
+        seenCategoriesRef.current.set(item.categoryId, item.category);
+        changed = true;
+      }
+      if (item.brandId && item.brand && !seenBrandsRef.current.has(item.brandId)) {
+        seenBrandsRef.current.set(item.brandId, item.brand);
+        changed = true;
+      }
+    });
+    if (changed) {
+      setFilterCategories(
+        Array.from(seenCategoriesRef.current.entries())
+          .map(([id, name]) => ({ id, name }))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      );
+      setFilterBrands(
+        Array.from(seenBrandsRef.current.entries())
+          .map(([id, name]) => ({ id, name }))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      );
+    }
+  }, [items]);
 
   const handleItemClick = useCallback((item: CollectionItem) => {
     setSelectedItem(item);
@@ -333,8 +366,8 @@ export function ItemsTable({
             viewOnly={viewOnly}
             selectedCount={selectedItemIds.length}
             onDeleteClick={handleOpenDeleteDialog}
-            brands={brands}
-            categories={categories}
+            brands={filterBrands}
+            categories={filterCategories}
           />
 
           <DataTable
