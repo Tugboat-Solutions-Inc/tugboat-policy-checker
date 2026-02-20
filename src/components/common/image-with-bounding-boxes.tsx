@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface ImageWithBoundingBoxesProps {
@@ -107,34 +106,27 @@ export function ImageWithBoundingBoxes({
       ref={containerRef}
       className={cn("relative w-full h-full overflow-hidden", className)}
     >
-      {hasLayout ? (
-        <Image
-          src={imageUrl}
-          alt={alt}
-          width={iw}
-          height={ih}
-          unoptimized
-          priority
-          onLoad={handleImageLoad}
-          style={{
-            position: "absolute",
-            left: offsetX,
-            top: offsetY,
-            width: renderedWidth,
-            height: renderedHeight,
-          }}
-        />
-      ) : (
-        <Image
-          src={imageUrl}
-          alt={alt}
-          fill
-          unoptimized
-          className="object-contain"
-          onLoad={handleImageLoad}
-          priority
-        />
-      )}
+      {/* Single img element — avoids unmount/remount flicker when hasLayout changes */}
+      <img
+        src={imageUrl}
+        alt={alt}
+        onLoad={handleImageLoad}
+        style={
+          hasLayout
+            ? {
+                position: "absolute",
+                left: offsetX,
+                top: offsetY,
+                width: renderedWidth,
+                height: renderedHeight,
+              }
+            : {
+                width: "100%",
+                height: "100%",
+                objectFit: "contain" as const,
+              }
+        }
+      />
       {boundingBoxElement}
     </div>
   );
