@@ -41,4 +41,4 @@ next-env.d.ts
 
 # test assets
 /test-images
-generate-test-images.mjs
+generate-test-images.mjs.worktrees/
