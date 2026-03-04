@@ -38,6 +38,11 @@ export const ROUTES = {
     PROPERTY: (id: string) => `/dashboard/property/${id}`,
     COLLECTION: (propertyId: string, collectionId: string, unitId: string) =>
       `/dashboard/property/${propertyId}/collections/${collectionId}?unitId=${unitId}`,
+
+    // Tools
+    POLICY_CHECKER: "/dashboard/tools/policy-checker",
+    POLICY_CHECKER_REPORT: (reportId: string) =>
+      `/dashboard/tools/policy-checker/${reportId}`,
   },
 
   EXAMPLE: {

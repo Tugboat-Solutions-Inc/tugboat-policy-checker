@@ -11,7 +11,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { GalleryVerticalEnd, LogOut, Loader2 } from "lucide-react";
+import { GalleryVerticalEnd, LogOut, Loader2, Shield } from "lucide-react";
 import {
   MenuIcon,
   GearIcon,
@@ -249,6 +249,20 @@ export default function AppSidebar({
                     />
                     <span className="text-sm font-medium whitespace-nowrap">
                       Dashboard
+                    </span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.includes("/tools/policy-checker")}
+                  className="px-2.5 py-2 transition-all duration-200 ease-in-out"
+                >
+                  <NavLink href="/dashboard/tools/policy-checker">
+                    <Shield className="h-4 w-4" />
+                    <span className="text-sm font-medium whitespace-nowrap">
+                      Policy Checker
                     </span>
                   </NavLink>
                 </SidebarMenuButton>
