@@ -17,6 +17,13 @@ const envSchema = z.object({
   NEXT_PUBLIC_BUNNY_STREAM_LIBRARY_ID: z
     .string()
     .min(1, "Bunny Stream Library ID is required"),
+
+  // Policy Checker feature
+  NEXT_PUBLIC_POLICY_SERVICE_URL: z
+    .string()
+    .url("Invalid Policy Service URL")
+    .optional(),
+  POLICY_SERVICE_SECRET: z.string().optional(),
 });
 
 export const env = envSchema.parse({
@@ -30,4 +37,9 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_STORAGE_URL: process.env.NEXT_PUBLIC_STORAGE_URL + "/",
   NEXT_PUBLIC_BUNNY_STREAM_LIBRARY_ID:
     process.env.NEXT_PUBLIC_BUNNY_STREAM_LIBRARY_ID,
+
+  // Policy Checker feature
+  NEXT_PUBLIC_POLICY_SERVICE_URL:
+    process.env.NEXT_PUBLIC_POLICY_SERVICE_URL,
+  POLICY_SERVICE_SECRET: process.env.POLICY_SERVICE_SECRET,
 });
